@@ -1,36 +1,31 @@
 local M = {}
 
--- This is the internal count
-local count = 0
+local util = require("eclectic.util")
 
-function M.count()
+-- This is the internal state
+local count = nil
+local flag = false
+
+local function get_count()
 	-- Reset count
 	local old_count = count
-	count = 0
+	count = nil
 	return old_count
 end
 
-function M.nonzero_count()
-	local c = M.count()
-	return c == 0 and 1 or c
+local function get_count_1()
+	-- Reset count
+	local old_count = count
+	count = nil
+	return old_count or 1
 end
 
-function M.nonnegative_count()
-	return math.abs(M.count())
-end
-
-function M.positive_count()
-	return math.max(1, M.count())
-end
-
--- TODO: Use once option instead
 local function repeat_next_char()
 	vim.api.nvim_create_autocmd("InsertCharPre", {
-		pattern = "*",
-		callback = function(ev)
-			vim.api.nvim_del_autocmd(ev.id)
-			vim.v.char = string.rep(vim.v.char, M.positive_count())
+		callback = function()
+			vim.v.char = string.rep(vim.v.char, math.abs(get_count()))
 		end,
+		once = true,
 	})
 end
 
@@ -40,48 +35,108 @@ function M.set_count(c)
 end
 
 function M.add_digit(d)
-	if count == 0 then
+	if count == nil then
+		count = 0
 		repeat_next_char()
 	end
-	local sign = count >= 0 and 1 or -1
+	local sign = util.ternary(count >= 0, 1, -1)
 	count = count * 10 + sign * d
 end
 
-function M.format_count(formatstr, count_func, opposite_formatstr)
+function M.format_count(formatstr, opts)
+	opts = opts or {}
 	return function()
-		local c = count_func()
-		if c < 0 and opposite_formatstr then
-			formatstr = opposite_formatstr
+		local c = get_count_1()
+		if c < 0 and opts.opposite then
+			formatstr = opts.opposite
 		end
-		return string.format(formatstr, math.abs(c))
+		if c == 0 then
+			if not opts.zero then
+				return ""
+			end
+			if type(opts.zero) == "string" then
+				return opts.zero
+			elseif type(opts.zero) == "function" then
+				return opts.zero()
+			end
+		end
+		if type(formatstr) == "string" then
+			return string.format(formatstr, math.abs(c))
+		elseif type(formatstr) == "function" then
+			return string.format(formatstr(), math.abs(c))
+		end
 	end
 end
 
-function M.repeat_times(cmd, count_func, opposite_cmd)
+function M.repeat_times(cmd, opts)
+	opts = opts or {}
 	return function()
-		local c = count_func()
-		if c < 0 and opposite_cmd then
-			cmd = opposite_cmd
+		local c = get_count_1()
+		if c < 0 and opts.opposite then
+			cmd = opts.opposite
+		end
+		if c == 0 then
+			if type(cmd) == "string" then
+				return opts.zero or ""
+			elseif type(cmd) == "function" then
+				return opts.zero or function() end
+			end
 		end
 		if type(cmd) == "string" then
 			return string.rep(cmd, math.abs(c))
 		elseif type(cmd) == "function" then
+			local res = ""
 			for _ = 1, math.abs(c) do
-				cmd()
+				res = res .. (cmd() or "")
 			end
+			return res
 		end
 	end
 end
 
-function M.pass_count(func, count_func)
+function M.pass_count(func)
 	return function()
-		func(count_func())
+		return func(get_count())
 	end
 end
 
-function M.pass_flag(func)
+function M.sequence(...)
+	local cmds = { ... }
 	return function()
-		func(M.count() ~= 0)
+		local res = ""
+		for _, cmd in ipairs(cmds) do
+			if type(cmd) == "string" then
+				res = res .. cmd
+			elseif type(cmd) == "function" then
+				res = res .. (cmd() or "")
+			end
+		end
+		return res
+	end
+end
+
+local function get_flag()
+	-- Reset flag
+	local old_flag = flag
+	flag = false
+	return old_flag
+end
+
+function M.raise_flag()
+	flag = true
+end
+
+function M.pass_flag(default_cmd, cmd_if_set)
+	return function()
+		if type(cmd_if_set) == type(default_cmd) == "string" then
+			return util.ternary(get_flag(), cmd_if_set, default_cmd)
+		elseif type(cmd_if_set) == type(default_cmd) == "function" then
+			if get_flag() then
+				return cmd_if_set()
+			else
+				return default_cmd()
+			end
+		end
 	end
 end
 

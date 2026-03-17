@@ -1,5 +1,6 @@
 local M = {}
 
+local util = require("eclectic.util")
 local emacs = require("eclectic.emacs")
 
 local default_config = {
@@ -8,7 +9,7 @@ local default_config = {
 	-- If a bool is given, all vim defaults are preserved
 	-- If a list is given, only those listed are preserved
 	-- TODO: List of all of vim's default bindings
-	keep = false,
+	keep = { "<Tab>" },
 	priorities = { "readline", "emacs", "word" },
 	-- Modes for which keybindings are applied
 	-- "i" for insert
@@ -18,7 +19,7 @@ local default_config = {
 	-- These keybinding will always be applied at the highest priority
 	-- and ignore the `keep` configuration option
 	always_apply = {
-		-- TODO: Add more
+		-- TODO: Add more. Also allow users to reference the plugins bindings
 		{ { "i", "c" }, "<C-<>", "<C-o><<", { desc = "deindent line" } },
 		{ { "i", "c" }, "<C->>", "<C-o>>>", { desc = "indent line" } },
 	},
@@ -27,17 +28,7 @@ local default_config = {
 function M.setup(user_config)
 	local config = vim.tbl_deep_extend("force", default_config, user_config or {})
 
-	local normal_command = function(str)
-		return string.format("<C-o>%s", str)
-	end
-	local ex_command = function(str)
-		return string.format("<Cmd>%s<CR>", str)
-	end
-	local interactive_ex_command = function(str, cursor_adjustment)
-		return string.format("<C-o>:%s" .. (cursor_adjustment or ""), str)
-	end
-
-	local emacs_bindings = emacs.generate_bindings(normal_command, ex_command, interactive_ex_command)
+	local emacs_bindings = emacs.bindings
 
 	-- TODO: Apply config
 	for _, binding in ipairs(emacs_bindings) do
@@ -60,7 +51,9 @@ function M.setup(user_config)
 			print(vim.inspect(opts))
 		end
 		for _, key in ipairs(keys) do
-			vim.keymap.set(available_modes, key, command, opts)
+			if not util.in_table(key, config.keep) then
+				vim.keymap.set(available_modes, key, command, opts)
+			end
 		end
 	end
 end
