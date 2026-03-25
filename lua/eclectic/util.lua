@@ -8,13 +8,22 @@ function M.ternary(expr, if_true, if_false)
 	return expr and if_true or if_false
 end
 
-function M.in_table(val, table)
-	for _, v in ipairs(table) do
-		if v == val then
-			return true
+function M.termcode_escape(str)
+	return vim.api.nvim_replace_termcodes(str, true, false, true)
+end
+
+function M.table_intersection(table1, table2)
+	local res = {}
+	for _, val in ipairs(table1) do
+		if vim.tbl_contains(table2, val) then
+			table.insert(res, val)
 		end
 	end
-	return false
+	return res
+end
+
+function M.as_table(obj)
+	return M.ternary(type(obj) == "table", obj, { obj })
 end
 
 return M
