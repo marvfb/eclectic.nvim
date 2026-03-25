@@ -10,49 +10,61 @@ local default_config = {
 	-- If a list is given, only those listed are preserved
 	-- TODO: List of all of vim's default bindings
 	keep = { "<Tab>" },
-	priorities = { "readline", "emacs", "word" },
+	readline_flavored = true,
 	-- Modes for which keybindings are applied
 	-- "i" for insert
 	-- "c" for command
-	-- "!" for both (supposedly)
-	modes = { "i", "c" },
+	-- "x" for visual
+	-- "s" for select
+	-- "n" for normal
+	-- global mode mask
+	modes = { "i", "c", "x", "s", "t" },
 	-- These keybinding will always be applied at the highest priority
 	-- and ignore the `keep` configuration option
-	always_apply = {
+	custom_bindings = {
 		-- TODO: Add more. Also allow users to reference the plugins bindings
-		{ { "i", "c" }, "<C-<>", "<C-o><<", { desc = "deindent line" } },
-		{ { "i", "c" }, "<C->>", "<C-o>>>", { desc = "indent line" } },
+
+		-- "key"
+		-- { "key", translation = "another_key"}
+		-- { "key", mode_mask = { "i", "c" } },
 	},
+	-- TODO: Config for disabling features groups
+	-- like certain modes.
 }
 
 function M.setup(user_config)
 	local config = vim.tbl_deep_extend("force", default_config, user_config or {})
 
-	local emacs_bindings = emacs.bindings
+	-- TODO: Apply config
+	local emacs_bindings = vim.tbl_extend("error", emacs.global_bindings, emacs.tab_bar_mode)
 
 	-- TODO: Apply config
-	for _, binding in ipairs(emacs_bindings) do
-		local available_modes = binding[1]
-		local keys = type(binding[2]) == "string" and { binding[2] } or binding[2]
-		local command = binding[3]
-		local opts = binding[4]
-
-		if
-			not (
-				type(keys) == "table"
-				and (type(available_modes) == "string" or type(available_modes) == "table")
-				and (type(command) == "string" or type(command) == "function")
-				and type(opts) == "table"
-			)
-		then
-			print(vim.inspect(key))
-			print(vim.inspect(available_modes))
-			print(vim.inspect(command))
-			print(vim.inspect(opts))
+	for key, bindings in pairs(emacs_bindings) do
+		if #bindings == 3 and type(bindings[2]) ~= "table" then
+			-- `bindings` is a single binding
+			bindings = { bindings }
 		end
-		for _, key in ipairs(keys) do
-			if not util.in_table(key, config.keep) then
-				vim.keymap.set(available_modes, key, command, opts)
+		for _, binding in ipairs(bindings) do
+			local available_modes = util.as_table(binding[1])
+			local command = binding[2]
+			local opts = binding[3]
+
+			if
+				not (
+					type(key) == "string"
+					and (type(available_modes) == "table")
+					and (type(command) == "string" or type(command) == "function")
+					and type(opts) == "table"
+				)
+			then
+				print(vim.inspect(available_modes))
+				print(vim.inspect(key))
+				print(vim.inspect(command))
+				print(vim.inspect(opts))
+			end
+
+			if not vim.tbl_contains(config.keep, key) then
+				vim.keymap.set(util.table_intersection(available_modes, config.modes), key, command, opts)
 			end
 		end
 	end

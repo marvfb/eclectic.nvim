@@ -4,26 +4,22 @@ local util = require("eclectic.util")
 
 -- This is the internal state
 local count = nil
-local flag = false
+local num_prefixes = 0
 
-local function get_count()
-	-- Reset count
+function M.get_count()
 	local old_count = count
+	-- Reset state
 	count = nil
+	num_prefixes = 0
 	return old_count
 end
 
-local function get_count_1()
-	-- Reset count
-	local old_count = count
-	count = nil
-	return old_count or 1
-end
-
+-- TODO: Does not work in command mode
+-- Also needs to expand abbrevs. see `self-insert-command`
 local function repeat_next_char()
 	vim.api.nvim_create_autocmd("InsertCharPre", {
 		callback = function()
-			vim.v.char = string.rep(vim.v.char, math.abs(get_count()))
+			vim.v.char = string.rep(vim.v.char, math.abs(M.get_count() or 1))
 		end,
 		once = true,
 	})
@@ -39,14 +35,22 @@ function M.add_digit(d)
 		count = 0
 		repeat_next_char()
 	end
-	local sign = util.ternary(count >= 0, 1, -1)
-	count = count * 10 + sign * d
+	count = count * 10 + d
 end
 
 function M.format_count(formatstr, opts)
 	opts = opts or {}
 	return function()
-		local c = get_count_1()
+		local c = M.get_count()
+		if c == nil then
+			if opts.default and type(opts.default) == "number" then
+				c = opts.default
+			elseif opts.default and type(opts.default) == "function" then
+				c = opts.default()
+			else
+				c = 1
+			end
+		end
 		if c < 0 and opts.opposite then
 			formatstr = opts.opposite
 		end
@@ -71,7 +75,16 @@ end
 function M.repeat_times(cmd, opts)
 	opts = opts or {}
 	return function()
-		local c = get_count_1()
+		local c = M.get_count()
+		if c == nil then
+			if opts.default and type(opts.default) == "number" then
+				c = opts.default
+			elseif opts.default and type(opts.default) == "function" then
+				c = opts.default()
+			else
+				c = 1
+			end
+		end
 		if c < 0 and opts.opposite then
 			cmd = opts.opposite
 		end
@@ -96,7 +109,33 @@ end
 
 function M.pass_count(func)
 	return function()
-		return func(get_count())
+		return func(M.get_count())
+	end
+end
+
+function M.get_num_prefixes()
+	local old_num_prefixes = num_prefixes
+	-- Reset state
+	count = nil
+	num_prefixes = 0
+	return old_num_prefixes
+end
+
+function M.add_prefix()
+	num_prefixes = num_prefixes + 1
+end
+
+function M.prefix_argument(...)
+	local cmds = { ... }
+	return function()
+		-- If there was a count, the initial C-u is not a prefix argument
+		local offset = util.ternary(count == nil, 1, 0)
+		local cmd = cmds[M.get_num_prefixes() + offset]
+		if type(cmd) == "string" then
+			return cmd
+		elseif type(cmd) == "function" then
+			return cmd()
+		end
 	end
 end
 
@@ -112,31 +151,6 @@ function M.sequence(...)
 			end
 		end
 		return res
-	end
-end
-
-local function get_flag()
-	-- Reset flag
-	local old_flag = flag
-	flag = false
-	return old_flag
-end
-
-function M.raise_flag()
-	flag = true
-end
-
-function M.pass_flag(default_cmd, cmd_if_set)
-	return function()
-		if type(cmd_if_set) == type(default_cmd) == "string" then
-			return util.ternary(get_flag(), cmd_if_set, default_cmd)
-		elseif type(cmd_if_set) == type(default_cmd) == "function" then
-			if get_flag() then
-				return cmd_if_set()
-			else
-				return default_cmd()
-			end
-		end
 	end
 end
 
