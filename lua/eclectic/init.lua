@@ -9,7 +9,7 @@ local default_config = {
 	-- If a bool is given, all vim defaults are preserved
 	-- If a list is given, only those listed are preserved
 	-- TODO: List of all of vim's default bindings
-	keep = { "<Tab>" },
+	keep = { "<Tab>", "<C-g>" },
 	readline_flavored = true,
 	-- Modes for which keybindings are applied
 	-- "i" for insert
@@ -18,15 +18,20 @@ local default_config = {
 	-- "s" for select
 	-- "n" for normal
 	-- global mode mask
-	modes = { "i", "c", "x", "s", "t" },
+	modes = {
+		"i",
+		"c",
+	},
+	key_adjustments = {
+		-- "key"
+		-- { "key", translation = "another_key" }
+		-- { "key", mode_mask = { "i", "c" } },
+	},
 	-- These keybinding will always be applied at the highest priority
 	-- and ignore the `keep` configuration option
-	custom_bindings = {
-		-- TODO: Add more. Also allow users to reference the plugins bindings
-
-		-- "key"
-		-- { "key", translation = "another_key"}
-		-- { "key", mode_mask = { "i", "c" } },
+	-- Critically, things like uarg are exposed to the user
+	custom_keybindings = {
+		-- ["key"] = { mode_list, action, opts }
 	},
 	-- TODO: Config for disabling features groups
 	-- like certain modes.

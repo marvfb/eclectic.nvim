@@ -9,11 +9,11 @@ local prompts = require("eclectic.emacs.prompts")
 
 -- Dont wanna do: Help, Emacs Lisp interpreter, support for frames and pages,
 -- recursive edit, crazy emacs indentation (including fill columns and fill prefix)
--- abbrevs (snippets), email, language modes
+-- email, language modes
 
 -- F keys, delete keys, arrow keys were not considered
 
--- Features to implement: Kmacros, xrefs (tags)
+-- Features to implement: Kmacros, xrefs (tags), abbrevs (there is a one-to-one thing in nvim)
 
 -- TODO: Implement sexps, defuns, list as a text objects using treesitter.
 -- Just search for all associated bindings in C-h b
@@ -22,8 +22,6 @@ local prompts = require("eclectic.emacs.prompts")
 -- TODO: Improve error handling. `pcall`
 
 -- TODO: Search for all mentions of marks, v, visual, etc. and consider transient mark mode and implicit region
-
--- TODO: Use mode-minder to find important modes
 
 -- Use ex long form commands where possible
 
@@ -128,10 +126,8 @@ M.global_bindings = {
 			-- Has to be this way since a failed h/j/k/l cancels the command
 			function()
 				return uarg.pass_count(function(count)
-					count = (count or 0) - 1
-					return "<Home>"
-						.. string.rep("<Down>", math.max(count, 0) + 1)
-						.. string.rep("<Up>", math.abs(math.min(count, 0)))
+					count = (count or 1) - 1
+					return "<Home>" .. string.rep(util.ternary(count > 0, "<Down>", "<Up>"), math.abs(count))
 				end)
 			end,
 			{ desc = "move-beggining-of-line", expr = true },
@@ -155,12 +151,11 @@ M.global_bindings = {
 	["<C-e>"] = {
 		unpack(normal_bindings({
 			navigation_modes,
+			-- Has to be this way since a failed h/j/k/l cancels the command
 			function()
 				return uarg.pass_count(function(count)
-					count = (count or 0) - 1
-					return "<End>"
-						.. string.rep("<Down>", math.max(count, 0) + 1)
-						.. string.rep("<Up>", math.abs(math.min(count, 0)))
+					count = (count or 1) - 1
+					return "<End>" .. string.rep(util.ternary(count > 0, "<Down>", "<Up>"), math.abs(count))
 				end)
 			end,
 			{ desc = "move-end-of-line", expr = true },
@@ -229,11 +224,10 @@ M.global_bindings = {
 		{ visual_mode, "/", { desc = "isearch-forward" } },
 		{ command_mode, "<C-g>", { desc = "isearch-forward" } },
 	},
-	-- TODO: Needs to be tested
 	["<C-t>"] = normal_bindings({
 		editing_modes,
 		function(normal)
-			return uarg.sequence(normal("<Left>x"), uarg.repeat_times("<Right>", { default = 0 }), normal("p"))
+			return uarg.format_count(normal("x<Left>%s<Right>p"), { opposite = normal("x<Left>%s<Left>p") })
 		end,
 		{ desc = "transpose-chars", expr = true },
 	}),
@@ -903,6 +897,7 @@ M.lisp_interaction_mode_bindings = {}
 -- ido-mode
 -- abbrev-mode
 -- artist-mode
+-- cua-mode
 
 M.tab_bar_mode = {
 	["<C-S-Tab>"] = { all_modes, ex_command("tabprevious"), { desc = "tab-previous" } },
@@ -914,6 +909,7 @@ M.tab_bar_mode = {
 local equivalence_classes = {
 	{ "<C-@>", "<C-Space>" },
 	{ "<C-_>", "<C-/>", "<C-x>u" },
+	{ "<C-->", "<M-->", "<C-M-->" },
 	{ "<C-0>", "<M-0>", "<C-M-0>" },
 	{ "<C-1>", "<M-1>", "<C-M-1>" },
 	{ "<C-2>", "<M-2>", "<C-M-2>" },
@@ -930,5 +926,19 @@ local equivalence_classes = {
 	{ "<C-x>'", "<C-x>a'", "<C-x>ae" },
 	{ "<C-x>(", "<C-x><C-k><C-s>", "<C-x><C-k>s" },
 }
+
+-- TODO: Also do this for other lists
+for _, ec in ipairs(equivalence_classes) do
+	local reference = nil
+	for _, key in ipairs(ec) do
+		if M.global_bindings[key] then
+			reference = M.global_bindings[key]
+			break
+		end
+	end
+	for _, key in ipairs(ec) do
+		M.global_bindings[key] = reference
+	end
+end
 
 return M
