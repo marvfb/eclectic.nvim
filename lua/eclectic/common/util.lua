@@ -22,6 +22,16 @@ function M.table_intersection(table1, table2)
 	return res
 end
 
+function M.table_difference(table1, table2)
+	local res = {}
+	for _, val in ipairs(table1) do
+		if not vim.tbl_contains(table2, val) then
+			table.insert(res, val)
+		end
+	end
+	return res
+end
+
 function M.as_table(obj)
 	return M.ternary(type(obj) == "table", obj, { obj })
 end
