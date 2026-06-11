@@ -1,6 +1,6 @@
 local M = {}
 
-local util = require("eclectic.util")
+local util = require("eclectic.common.util")
 
 -- This is the internal state
 local count = nil

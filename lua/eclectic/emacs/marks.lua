@@ -4,6 +4,10 @@ local M = {}
 
 -- TODO: Carefully think about default
 
+-- If we dont need ring functionality, we could have this as
+-- one global variable, which stores the correct mark depending
+-- on the action that was performed last (`[, `', etc.)
+
 local mark_ring = {}
 
 local global_mark_ring = {}

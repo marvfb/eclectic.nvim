@@ -2,7 +2,7 @@ local M = {}
 
 local universal_argument = require("eclectic.emacs.universal_argument")
 local input_handling = require("eclectic.emacs.input_handling")
-local util = require("eclectic.util")
+local util = require("eclectic.common.util")
 
 -- Does not work correctly for some reason
 function M.recenter_top_bottom()
