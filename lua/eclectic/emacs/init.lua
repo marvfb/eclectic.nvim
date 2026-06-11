@@ -23,6 +23,8 @@ local prompts = require("eclectic.emacs.prompts")
 
 -- TODO: Improve error handling. Use pcall, error, assert where needed.
 
+-- Use : where possible
+
 -- TODO: Search for all mentions of marks, v, visual, etc. and consider transient mark mode and implicit region
 
 -- Use ex long form commands where possible
@@ -54,7 +56,7 @@ M.global_bindings = {
 	-- 	{ desc = "self-insert-command", expr = true },
 	-- }),
 
-	["<C-@>"] = primitives.normal_bindings({
+	["<C-@>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.prefix_argument(function()
@@ -69,7 +71,7 @@ M.global_bindings = {
 		{ desc = "set-mark-command", expr = true },
 	}),
 	["<C-a>"] = {
-		unpack(primitives.normal_bindings({
+		unpack(primitives.bindings(primitives.normal, {
 			primitives.navigation_modes,
 			-- Has to be this way since a failed h/j/k/l cancels the command
 			function()
@@ -97,7 +99,7 @@ M.global_bindings = {
 		{ desc = "delete-char", expr = true },
 	},
 	["<C-e>"] = {
-		unpack(primitives.normal_bindings({
+		unpack(primitives.bindings(primitives.normal, {
 			primitives.navigation_modes,
 			-- Has to be this way since a failed h/j/k/l cancels the command
 			function()
@@ -126,16 +128,16 @@ M.global_bindings = {
 		{
 			primitives.insert_mode,
 			uarg.format_count(
-				primitives.normal_from_insert("%dD"),
-				{ opposite = primitives.normal_from_insert("v0%dkd"), zero = primitives.normal_from_insert("v0d") }
+				primitives.normal.from_insert("%dD"),
+				{ opposite = primitives.normal.from_insert("v0%dkd"), zero = primitives.normal.from_insert("v0d") }
 			),
 			{ desc = "kill-line", expr = true },
 		},
 		{
 			primitives.command_mode,
 			uarg.format_count(
-				primitives.normal_from_command("D"),
-				{ opposite = primitives.normal_from_command("v0d"), zero = primitives.normal_from_command("v0d") }
+				primitives.normal.from_command("D"),
+				{ opposite = primitives.normal.from_command("v0d"), zero = primitives.normal.from_command("v0d") }
 			),
 			{ desc = "kill-line", expr = true },
 		},
@@ -153,7 +155,7 @@ M.global_bindings = {
 	-- TODO: Fill prefix
 	["<C-o>"] = {
 		primitives.insert_mode,
-		uarg.repeat_times(primitives.normal_from_insert("O")),
+		uarg.repeat_times(primitives.normal.from_insert("O")),
 		{ desc = "next-line", expr = true },
 	},
 	["<C-p>"] = {
@@ -163,16 +165,16 @@ M.global_bindings = {
 	},
 	-- C-q exists already
 	["<C-r>"] = {
-		{ primitives.insert_mode, primitives.normal_from_insert("?", ""), { desc = "isearch-backward" } },
+		{ primitives.insert_mode, primitives.normal.from_insert("?", ""), { desc = "isearch-backward" } },
 		{ primitives.visual_mode, "?", { desc = "isearch-backward" } },
 		{ primitives.command_mode, "<C-t>", { desc = "isearch-backward" } },
 	},
 	["<C-s>"] = {
-		{ primitives.insert_mode, primitives.normal_from_insert("/", ""), { desc = "isearch-forward" } },
+		{ primitives.insert_mode, primitives.normal.from_insert("/", ""), { desc = "isearch-forward" } },
 		{ primitives.visual_mode, "/", { desc = "isearch-forward" } },
 		{ primitives.command_mode, "<C-g>", { desc = "isearch-forward" } },
 	},
-	["<C-t>"] = primitives.normal_bindings({
+	["<C-t>"] = primitives.bindings(primitives.normal, {
 		primitives.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("x<Left>%s<Right>p"), { opposite = normal("x<Left>%s<Left>p") })
@@ -198,7 +200,7 @@ M.global_bindings = {
 		{ desc = "universal-argument" },
 	},
 	-- TODO: This is not accurate
-	["<C-v>"] = primitives.normal_bindings({
+	["<C-v>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function()
 			return uarg.repeat_times("<PageUp>", { opposite = "<PageDown>" })
@@ -221,7 +223,7 @@ M.global_bindings = {
 	["<C-y>"] = {
 		{
 			primitives.insert_mode,
-			uarg.prefix_argument(primitives.normal_from_insert("p", "a"), primitives.normal_from_insert("p", "`[i")),
+			uarg.prefix_argument(primitives.normal.from_insert("p", "a"), primitives.normal.from_insert("p", "`[i")),
 			{ desc = "yank", expr = true },
 		},
 		{
@@ -233,7 +235,7 @@ M.global_bindings = {
 					string.gsub(unnammed_register, "\n", " ")
 					vim.fn.setreg('"', unnammed_register)
 					-- Command buffer has own set of marks
-				end, primitives.normal_from_command("mzi<Left><Esc>p`z"))
+				end, primitives.normal.from_command("mzi<Left><Esc>p`z"))
 			),
 			{ desc = "yank", expr = true },
 		},
@@ -243,7 +245,7 @@ M.global_bindings = {
 	-- C-] unimplemented
 	["<C-_>"] = {
 		primitives.insert_mode,
-		uarg.format_count(primitives.normal_from_insert("%du")),
+		uarg.format_count(primitives.normal.from_insert("%du")),
 		{ desc = "undo", expr = true },
 	},
 	["<C-->"] = {
@@ -331,22 +333,26 @@ M.global_bindings = {
 	},
 	["<C-?>"] = {
 		primitives.insert_mode,
-		uarg.format_count(primitives.normal_from_insert("%d<C-r>")),
+		uarg.format_count(primitives.normal.from_insert("%d<C-r>")),
 		{ desc = "undo-redo" },
 	},
 	-- TODO: test
 	["<C-S-Bs>"] = {
 		primitives.insert_mode,
 		uarg.format_count(
-			primitives.normal_from_insert("%ddd"),
-			{ opposite = primitives.normal_from_insert("V%dkd"), zero = primitives.normal_from_insert("0d$") }
+			primitives.normal.from_insert("%ddd"),
+			{ opposite = primitives.normal.from_insert("V%dkd"), zero = primitives.normal.from_insert("0d$") }
 		),
 		{ desc = "kill-whole-line", expr = true },
 	},
 	-- C-Bs exists as a default
 
 	-- TODO: Find appropriate help pages for all of these
-	["<C-h>a"] = { primitives.insert_mode, primitives.interactive_ex_command("help "), { desc = "about-emacs" } },
+	["<C-h>a"] = {
+		primitives.insert_mode,
+		primitives.interactive_ex_command.from_insert("help "),
+		{ desc = "about-emacs" },
+	},
 
 	["<C-x><C-@>"] = {
 		primitives.navigation_modes,
@@ -364,12 +370,12 @@ M.global_bindings = {
 	},
 	["<C-x><C-d>"] = {
 		primitives.insert_mode,
-		primitives.interactive_ex_command("e " .. get_cwd),
+		primitives.interactive_ex_command.from_insert("e " .. get_cwd),
 		{ desc = "list-directory" },
 	},
 	["<C-x><C-f>"] = {
 		primitives.insert_mode,
-		primitives.interactive_ex_command("e " .. get_cwd),
+		primitives.interactive_ex_command.from_insert("e " .. get_cwd),
 		{ desc = "find-file" },
 	},
 	-- TODO: incorrect. is technically its own modes
@@ -402,12 +408,12 @@ M.global_bindings = {
 	["<C-x><C-u>"] = { primitives.visual_mode, "U", { desc = "uppercase region" } },
 	["<C-x><C-v>"] = {
 		primitives.insert_mode,
-		primitives.ex_command("bw") .. primitives.interactive_ex_command("e " .. get_cwd),
+		primitives.ex_command("bw") .. primitives.interactive_ex_command.from_insert("e " .. get_cwd),
 		{ desc = "find-alternate-file" },
 	},
 	["<C-x><C-w>"] = {
 		primitives.insert_mode,
-		primitives.interactive_ex_command("w " .. get_cwd),
+		primitives.interactive_ex_command.from_insert("w " .. get_cwd),
 		{ desc = "write-file" },
 	},
 	["<C-x><C-x>"] = {
@@ -447,7 +453,7 @@ M.global_bindings = {
 		{ desc = "split-window-right", expr = true },
 	},
 	-- comment-set-column unimplemented
-	["<C-x><"] = primitives.normal_bindings({
+	["<C-x><"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.pass_count(function(count)
@@ -466,7 +472,7 @@ M.global_bindings = {
 		{ desc = "scroll-left", expr = true },
 	}),
 	-- what-cursor-position unimplemented
-	["<C-x>>"] = primitives.normal_bindings({
+	["<C-x>>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.pass_count(function(count)
@@ -484,35 +490,43 @@ M.global_bindings = {
 		end,
 		{ desc = "scroll-right", expr = true },
 	}),
-	["<C-x>^"] = primitives.normal_bindings({
+	["<C-x>^"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d<C-w>+"), { opposite = normal("%d<C-w>-") })
 		end,
 		{ desc = "enlarge-window", expr = true },
 	}),
-	["<C-x>`"] = primitives.normal_bindings({
+	["<C-x>`"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.prefix_argument(uarg.format_count(normal("%d]q"), { opposite = "%d[q" }), normal("[Q"))
 		end,
 		{ desc = "next-error", expr = true },
 	}),
-	["<C-x>b"] = { primitives.insert_mode, primitives.interactive_ex_command("b "), { desc = "switch-to-buffer" } },
-	["<C-x>d"] = { primitives.insert_mode, primitives.interactive_ex_command("e " .. get_cwd), { desc = "dired" } },
+	["<C-x>b"] = {
+		primitives.insert_mode,
+		primitives.interactive_ex_command.from_insert("b "),
+		{ desc = "switch-to-buffer" },
+	},
+	["<C-x>d"] = {
+		primitives.insert_mode,
+		primitives.interactive_ex_command.from_insert("e " .. get_cwd),
+		{ desc = "dired" },
+	},
 	["<C-x>h"] = {
 		primitives.insert_mode,
-		uarg.sequence(primitives.normal_from_insert("G$"), primitives.visual_from_insert("gg0")),
+		uarg.sequence(primitives.normal.from_insert("G$"), primitives.interactive_visual.from_insert("gg0")),
 		{ desc = "mark-whole-buffer", expr = true },
 	},
 	["<C-x>i"] = {
 		primitives.insert_mode,
-		primitives.interactive_ex_command("read " .. get_cwd),
+		primitives.interactive_ex_command.from_insert("read " .. get_cwd),
 		{ desc = "insert-file" },
 	},
 	["<C-x>k"] = { primitives.all_modes, primitives.ex_command("bw"), { desc = "kill-buffer" } },
 	-- count-lines-page unimplemented
-	["<C-x>o"] = primitives.normal_bindings({
+	["<C-x>o"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.repeat_times(normal("<C-w>w"), { opposite = normal("<C-w>p") })
@@ -520,21 +534,21 @@ M.global_bindings = {
 		{ desc = "other-window", expr = true },
 	}),
 	["<C-x>s"] = { primitives.all_modes, primitives.ex_command("wa"), { desc = "save-some-buffers" } },
-	["<C-x>z"] = primitives.normal_bindings({
+	["<C-x>z"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return normal(".")
 		end,
 		{ desc = "repeat" },
 	}),
-	["<C-x>{"] = primitives.normal_bindings({
+	["<C-x>{"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d<C-w><"), { opposite = normal("%d<C-w>>") })
 		end,
 		{ desc = "shrink-window-horizontally", expr = true },
 	}),
-	["<C-x>}"] = primitives.normal_bindings({
+	["<C-x>}"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d<C-w>>"), { opposite = normal("%d<C-w><") })
@@ -546,8 +560,8 @@ M.global_bindings = {
 	["<C-x><C-;>"] = {
 		primitives.insert_mode,
 		uarg.format_count(
-			primitives.normal_from_insert("%dgcc"),
-			{ opposite = primitives.normal_from_insert("V%dkgc") }
+			primitives.normal.from_insert("%dgcc"),
+			{ opposite = primitives.normal.from_insert("V%dkgc") }
 		),
 		{ desc = "comment-line", expr = true },
 	},
@@ -559,16 +573,16 @@ M.global_bindings = {
 		{ desc = "split-line" },
 	},
 	["<C-M-r>"] = {
-		{ primitives.insert_mode, primitives.normal_from_insert("?", ""), { desc = "isearch-backward-regexp" } },
+		{ primitives.insert_mode, primitives.normal.from_insert("?", ""), { desc = "isearch-backward-regexp" } },
 		{ primitives.visual_mode, "?", { desc = "isearch-backward-regexp" } },
 		{ primitives.command_mode, "<C-t>", { desc = "isearch-backward-regexp" } },
 	},
 	["<C-M-s>"] = {
-		{ primitives.insert_mode, primitives.normal_from_insert("/", ""), { desc = "isearch-forward-regexp" } },
+		{ primitives.insert_mode, primitives.normal.from_insert("/", ""), { desc = "isearch-forward-regexp" } },
 		{ primitives.visual_mode, "/", { desc = "isearch-forward-regexp" } },
 		{ primitives.command_mode, "<C-g>", { desc = "isearch-forward-regexp" } },
 	},
-	["<C-M-v>"] = primitives.normal_bindings({
+	["<C-M-v>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.sequence(
@@ -581,21 +595,25 @@ M.global_bindings = {
 	}),
 	-- append-next-kill unimplemented
 	-- indent-region unimplemented
-	["<M-!>"] = { primitives.insert_mode, primitives.interactive_ex_command("!"), { desc = "shell-command" } },
+	["<M-!>"] = {
+		primitives.insert_mode,
+		primitives.interactive_ex_command.from_insert("!"),
+		{ desc = "shell-command" },
+	},
 	["<M-%>"] = {
 		primitives.navigation_modes,
-		primitives.interactive_ex_command("%s///c", "<Left><Left><Left>"),
+		primitives.interactive_ex_command.from_insert("%s///c", "<Left><Left><Left>"),
 		{ desc = "query-replace" },
 	},
 	["<M-&>"] = {
 		primitives.insert_mode,
-		primitives.interactive_ex_command("term "),
+		primitives.interactive_ex_command.from_insert("term "),
 		{ desc = "async-shell-command" },
 	},
 	-- eval-expression unimplemented
 	-- commend-dwim unimplemented
 	-- count-words-region unimplemented
-	["<M->>"] = primitives.normal_bindings({
+	["<M->>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function()
 			return uarg.pass_count(function(count)
@@ -609,7 +627,7 @@ M.global_bindings = {
 		{ desc = "end-of-buffer", expr = true },
 	}),
 	-- mark-word unimplemented
-	["<M-a>"] = primitives.normal_bindings({
+	["<M-a>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d(", "i"), { opposite = normal("%d)", "a") })
@@ -621,21 +639,21 @@ M.global_bindings = {
 		uarg.repeat_times("<C-Left>", { opposite = "<C-Right>" }),
 		{ desc = "backward-word", expr = true },
 	},
-	["<M-c>"] = primitives.normal_bindings({
+	["<M-c>"] = primitives.bindings(primitives.normal, {
 		primitives.editing_modes,
 		function(normal)
 			return uarg.repeat_times(normal("guevUw", "a"), { opposite = normal("vbguvUge") })
 		end,
 		{ desc = "capitalize-word", expr = true },
 	}),
-	["<M-d>"] = primitives.normal_bindings({
+	["<M-d>"] = primitives.bindings(primitives.normal, {
 		primitives.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("%dde"), { opposite = normal("v%dbd") })
 		end,
 		{ desc = "kill-word", expr = true },
 	}),
-	["<M-e>"] = primitives.normal_bindings({
+	["<M-e>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d)", "a"), { opposite = normal("%d(", "i") })
@@ -649,22 +667,25 @@ M.global_bindings = {
 	},
 	["<M-h>"] = {
 		primitives.insert_mode,
-		uarg.format_count(primitives.visual_from_insert("%d)o"), { opposite = primitives.visual_from_insert("%d(o") }),
+		uarg.format_count(
+			primitives.interactive_visual.from_insert("%d)o"),
+			{ opposite = primitives.interactive_visual.from_insert("%d(o") }
+		),
 		{ desc = "mark-paragraph", expr = true },
 	},
 	["<M-k>"] = {
 		primitives.insert_mode,
-		uarg.format_count(primitives.normal_from_insert("%dd)"), { opposite = primitives.normal_from_insert("v%d(d") }),
+		uarg.format_count(primitives.normal.from_insert("%dd)"), { opposite = primitives.normal.from_insert("v%d(d") }),
 		{ desc = "kill-sentence", expr = true },
 	},
-	["<M-l>"] = primitives.normal_bindings({
+	["<M-l>"] = primitives.bindings(primitives.normal, {
 		primitives.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("%dguw"), { opposite = normal("v%dbgu`]") })
 		end,
 		{ desc = "downcase-word", expr = true },
 	}),
-	["<M-m>"] = primitives.normal_bindings({
+	["<M-m>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return normal("^")
@@ -673,7 +694,7 @@ M.global_bindings = {
 	}),
 	-- TODO: M-r is C-l but with H M L instead of zt zz zb
 	-- TODO: transpose-words
-	["<M-u>"] = primitives.normal_bindings({
+	["<M-u>"] = primitives.bindings(primitives.normal, {
 		primitives.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("%dgUw"), { opposite = normal("v%dbgU`]") })
@@ -681,7 +702,7 @@ M.global_bindings = {
 		{ desc = "upcase-word", expr = true },
 	}),
 	-- TODO: Inaccurate
-	["<M-v>"] = primitives.normal_bindings({
+	["<M-v>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function()
 			return uarg.repeat_times("<PageDown>", { opposite = "<PageUp>" })
@@ -709,7 +730,7 @@ M.global_bindings = {
 		end),
 		{ desc = "zap-to-char" },
 	},
-	["<M-{>"] = primitives.normal_bindings({
+	["<M-{>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d{", "i"), { opposite = normal("%d}", "a") })
@@ -719,10 +740,10 @@ M.global_bindings = {
 	-- TODO: Inaccurate
 	["<C-u><M-|>"] = {
 		primitives.visual_mode,
-		primitives.interactive_ex_command("!"),
+		primitives.interactive_ex_command.from_insert("!"),
 		{ desc = "filter region through a shell command" },
 	},
-	["<M-}>"] = primitives.normal_bindings({
+	["<M-}>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d}", "a"), { opposite = normal("%d{", "i") })
@@ -733,14 +754,14 @@ M.global_bindings = {
 	-- recenter-other-window, scroll-other-window-down unimplemented
 	["<C-M-%>"] = {
 		primitives.navigation_modes,
-		primitives.interactive_ex_command("%s///c", "<Left><Left><Left>"),
+		primitives.interactive_ex_command.from_insert("%s///c", "<Left><Left><Left>"),
 		{ desc = "query-replace-regexp" },
 	},
 
 	-- XXX: Ended off at isearch-forward-symbol-at-point
 
 	-- Motion
-	["<M-<>"] = primitives.normal_bindings({
+	["<M-<>"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function()
 			return uarg.pass_count(function(count)
@@ -770,7 +791,7 @@ M.global_bindings = {
 		uarg.repeat_times("<Bs>", { opposite = "<Del>" }),
 		{ desc = "kill character forward", expr = true },
 	},
-	["<M-Bs>"] = primitives.normal_bindings({
+	["<M-Bs>"] = primitives.bindings(primitives.normal, {
 		primitives.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("v%dbd"), { opposite = normal("%dde") })
@@ -779,14 +800,17 @@ M.global_bindings = {
 	}),
 	["<C-x><Bs>"] = {
 		primitives.insert_mode,
-		uarg.format_count(primitives.normal_from_insert("v%d(d"), { opposite = primitives.normal_from_insert("%dd)") }),
+		uarg.format_count(primitives.normal.from_insert("v%d(d"), { opposite = primitives.normal.from_insert("%dd)") }),
 		{ desc = "kill sentence backward", expr = true },
 	},
 
 	-- Marking
 	["<M-@>"] = {
 		primitives.insert_mode,
-		uarg.format_count(primitives.visual_from_insert("%deo"), { opposite = primitives.visual_from_insert("%dbo") }),
+		uarg.format_count(
+			primitives.interactive_visual.from_insert("%deo"),
+			{ opposite = primitives.interactive_visual.from_insert("%dbo") }
+		),
 		{ desc = "set mark words away", expr = true },
 	},
 
@@ -795,10 +819,13 @@ M.global_bindings = {
 	-- Multiple Windows
 	["<C-x>4b"] = {
 		primitives.insert_mode,
-		uarg.sequence(select_other_window(primitives.normal_from_insert), primitives.interactive_ex_command("e ")),
+		uarg.sequence(
+			select_other_window(primitives.normal.from_insert),
+			primitives.interactive_ex_command.from_insert("e ")
+		),
 		{ desc = "select buffer in other window", expr = true },
 	},
-	["<C-x>4d"] = primitives.normal_bindings({
+	["<C-x>4d"] = primitives.bindings(primitives.normal, {
 		primitives.navigation_modes,
 		function(normal)
 			return uarg.sequence(select_other_window(normal), primitives.ex_command("e ."))
@@ -807,19 +834,22 @@ M.global_bindings = {
 	}),
 	["<C-x>4."] = {
 		primitives.insert_mode,
-		uarg.sequence(select_other_window(primitives.normal_from_insert), primitives.interactive_ex_command("tag ")),
+		uarg.sequence(
+			select_other_window(primitives.normal.from_insert),
+			primitives.interactive_ex_command.from_insert("tag ")
+		),
 		{ desc = "find tag in other window", expr = true },
 	},
 
 	-- Formatting
 	["<Tab>"] = {
-		{ primitives.insert_mode, primitives.normal_from_insert("=="), { desc = "indent current line" } },
+		{ primitives.insert_mode, primitives.normal.from_insert("=="), { desc = "indent current line" } },
 		{ primitives.visual_mode, "=", { desc = "indent region" } },
 	},
 	["<C-M-\\>"] = { primitives.visual_mode, "=", { desc = "indent region" } },
 	["<M-^>"] = {
 		primitives.insert_mode,
-		uarg.prefix_argument("<Up>" .. primitives.normal_from_insert("J"), "J"),
+		uarg.prefix_argument("<Up>" .. primitives.normal.from_insert("J"), "J"),
 		{ desc = "join line with previous (with arg, next)", expr = true },
 	},
 	["<C-x>f"] = {
@@ -839,12 +869,16 @@ M.global_bindings = {
 	-- Spelling Check
 	["<M-$>"] = {
 		primitives.insert_mode,
-		primitives.normal_from_insert("z="),
+		primitives.normal.from_insert("z="),
 		{ desc = "check spelling of current word" },
 	},
 
 	-- Tags
-	["<M-.>"] = { primitives.insert_mode, primitives.interactive_ex_command("tag "), { desc = "find a tag" } },
+	["<M-.>"] = {
+		primitives.insert_mode,
+		primitives.interactive_ex_command.from_insert("tag "),
+		{ desc = "find a tag" },
+	},
 
 	-- Shells
 
