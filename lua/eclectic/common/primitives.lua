@@ -6,10 +6,11 @@ M.all_modes = { "n", "i", "s", "x", "c", "t" }
 M.nonterminal_modes = { "n", "i", "s", "x", "c" }
 M.navigation_modes = { "n", "i", "s", "x" }
 M.editing_modes = { "i", "s", "c" }
+M.normal_mode = "n"
 M.insert_mode = "i"
-M.command_mode = "c"
-M.visual_mode = "x"
 M.select_mode = "s"
+M.visual_mode = "x"
+M.command_mode = "c"
 M.terminal_mode = "t"
 
 local mt = {}
@@ -30,9 +31,9 @@ function M.normal.from_mode(mode)
 		elseif mode == "i" or mode == "s" then
 			return "<Esc>" .. str .. reenter_how
 		elseif mode == "c" then
-			return "<C-f>" .. reenter_how .. "<C-c><Cmd>redraw<CR>"
+			return "<C-f>" .. str .. reenter_how .. "<C-c><Cmd>redraw<CR>"
 		elseif mode == "t" then
-			return "<C-\\><C-n>" .. str .. (reenter_how or "i")
+			return "<C-\\><C-n>" .. str .. reenter_how
 		end
 		error("unexpected mode: " .. mode)
 		return nil
@@ -66,7 +67,7 @@ M.interactive_visual = {}
 setmetatable(M.interactive_visual, mt)
 function M.interactive_visual.from_mode(mode)
 	return function(str, enter_how)
-		enter_how = enter_how or "x"
+		enter_how = enter_how or "v"
 		if mode == "n" then
 			return enter_how .. str
 		elseif mode == "v" then
@@ -94,7 +95,7 @@ function M.bindings(kind, binding)
 
 	local bindings = {}
 	for _, mode in ipairs(modes) do
-		assert(kind["from_" .. mode], "Indexing doesnt work")
+		assert(kind["from_" .. mode], "Unkown kind")
 		table.insert(bindings, { mode, generate_cmd(kind["from_" .. mode]), opts })
 	end
 

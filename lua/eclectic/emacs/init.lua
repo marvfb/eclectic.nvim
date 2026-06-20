@@ -70,8 +70,9 @@ M.global_bindings = {
 		end,
 		{ desc = "set-mark-command", expr = true },
 	}),
-	["<C-a>"] = {
-		unpack(prims.bindings(prims.normal, {
+	["<C-a>"] = vim.tbl_extend(
+		"keep",
+		prims.bindings(prims.normal, {
 			prims.navigation_modes,
 			-- Has to be this way since a failed h/j/k/l cancels the command
 			function()
@@ -81,13 +82,13 @@ M.global_bindings = {
 				end)
 			end,
 			{ desc = "move-beggining-of-line", expr = true },
-		})),
+		}),
 		{
 			prims.command_mode,
 			uarg.repeat_times("<Home>", { opposite = "<End>" }),
 			{ desc = "move-beggining-of-line", expr = true },
-		},
-	},
+		}
+	),
 	["<C-b>"] = {
 		prims.nonterminal_modes,
 		uarg.repeat_times("<Left>", { opposite = "<Right>" }),
@@ -98,8 +99,9 @@ M.global_bindings = {
 		uarg.repeat_times("<Del>", { opposite = "<Bs>" }),
 		{ desc = "delete-char", expr = true },
 	},
-	["<C-e>"] = {
-		unpack(prims.bindings(prims.normal, {
+	["<C-e>"] = vim.tbl_extend(
+		"keep",
+		prims.bindings(prims.normal, {
 			prims.navigation_modes,
 			-- Has to be this way since a failed h/j/k/l cancels the command
 			function()
@@ -109,13 +111,13 @@ M.global_bindings = {
 				end)
 			end,
 			{ desc = "move-end-of-line", expr = true },
-		})),
+		}),
 		{
 			prims.command_mode,
 			uarg.repeat_times("<End>", { opposite = "<Home>" }),
 			{ desc = "move-end-of-line", expr = true },
-		},
-	},
+		}
+	),
 	["<C-f>"] = {
 		prims.nonterminal_modes,
 		uarg.repeat_times("<Right>", { opposite = "<Left>" }),
@@ -345,12 +347,13 @@ M.global_bindings = {
 		),
 		{ desc = "kill-whole-line", expr = true },
 	},
-	["<C-Bs>"] = {
+	["<C-Bs>"] = prims.bindings(prims.normal, {
 		prims.editing_modes,
-		-- TODO: I want C-w semantics but for the opposite I would need to change to normal mode
-		uarg.repeat_times("<C-w>", { opposite = "" })({ desc = "kill-whole-line", expr = true }),
-		{ desc = "kill-whole-line", expr = true },
-	},
+		function(normal)
+			return uarg.format_count(normal("v%dbd", "a"), { opposite = normal("%dde") })
+		end,
+		{ desc = "backward-kill-word", expr = true },
+	}),
 
 	-- TODO: Find appropriate help pages for all of these
 	["<C-h>a"] = {
@@ -793,13 +796,6 @@ M.global_bindings = {
 		uarg.repeat_times("<Bs>", { opposite = "<Del>" }),
 		{ desc = "kill character forward", expr = true },
 	},
-	["<M-Bs>"] = prims.bindings(prims.normal, {
-		prims.editing_modes,
-		function(normal)
-			return uarg.format_count(normal("v%dbd"), { opposite = normal("%dde") })
-		end,
-		{ desc = "kill word backward", expr = true },
-	}),
 	["<C-x><Bs>"] = {
 		prims.insert_mode,
 		uarg.format_count(prims.normal.from_insert("v%d(d"), { opposite = prims.normal.from_insert("%dd)") }),
@@ -914,6 +910,7 @@ local equivalence_classes = {
 	{ "<C-8>", "<M-8>", "<C-M-8>" },
 	{ "<C-9>", "<M-9>", "<C-M-9>" },
 	{ "<C-?>", "<C-M-?>" },
+	{ "<C-Bs>", "<M-Bs>" },
 	{ "<C-x><C-@>", "<C-x><C-Space>" },
 	{ "<C-z>", "<C-x><C-z>" },
 	{ "<C-x>'", "<C-x>a'", "<C-x>ae" },
