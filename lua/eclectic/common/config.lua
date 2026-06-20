@@ -16,6 +16,8 @@ local default_config = {
 			-- Warning about lua regexes
 			{ ".*", { "i", "c" } },
 			{ "<C%-x>.*", "t" },
+			{ "<M%-n>", "x" },
+			{ "<M%-p>", "x" },
 		},
 		-- Defines a set of rules for denied keybindings. Has a higher priority than allow_rules.
 		deny_rules = {
@@ -26,8 +28,10 @@ local default_config = {
 		},
 		key_translations = {
 			-- ["Key"] = "Other key"
+			["<M-Up>"] = "<M-p>",
+			["<M-Down>"] = "<M-n>",
 		},
-		extra_features = { "tab_bar_mode" },
+		extra_features = { "tab_bar_mode", "move_text" },
 	},
 }
 
@@ -60,6 +64,8 @@ function M.apply_config(user_config)
 		local editor = editors[name]
 		local bindings = editor.global_bindings
 		for _, feat in ipairs(cfg.extra_features) do
+			-- Emacs uses - a lot
+			feat = string.gsub(feat, "%-", "_")
 			bindings = vim.tbl_extend("error", bindings, editor[feat])
 		end
 
@@ -87,12 +93,9 @@ function M.apply_config(user_config)
 					print(vim.inspect(opts))
 				end
 
-				vim.keymap.set(
-					allowed_modes(key, available_modes, cfg.allow_rules, cfg.deny_rules),
-					cfg.key_translations[key] or key,
-					command,
-					opts
-				)
+				key = cfg.key_translations[key] or key
+				local modes = allowed_modes(key, available_modes, cfg.allow_rules, cfg.deny_rules)
+				vim.keymap.set(modes, key, command, opts)
 			end
 		end
 	end

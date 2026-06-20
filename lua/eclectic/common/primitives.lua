@@ -39,6 +39,28 @@ function M.normal.from_mode(mode)
 	end
 end
 
+M.visual = {}
+setmetatable(M.visual, mt)
+function M.visual.from_mode(mode)
+	return function(str, enter_how)
+		enter_how = enter_how or "v"
+		if mode == "n" then
+			return enter_how .. str .. "<Esc>"
+		elseif mode == "x" then
+			-- TODO: how do v V and C-v interact
+			return str .. "gv"
+		elseif mode == "i" or mode == "s" then
+			return "<C-o>" .. enter_how .. str
+		elseif mode == "c" then
+			return "<C-f>" .. enter_how .. str .. "<C-c><Cmd>redraw<CR>"
+		elseif mode == "t" then
+			return "<C-\\><C-o>" .. enter_how .. str
+		end
+		error("unexpected mode: " .. mode)
+		return nil
+	end
+end
+
 function M.ex_command(str)
 	return "<Cmd>" .. str .. "<CR>"
 end
