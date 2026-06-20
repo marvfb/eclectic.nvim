@@ -69,7 +69,7 @@ function M.interactive_visual.from_mode(mode)
 		enter_how = enter_how or "v"
 		if mode == "n" then
 			return enter_how .. str
-		elseif mode == "v" then
+		elseif mode == "x" then
 			return "" .. str
 		elseif mode == "i" or mode == "s" then
 			return "<Esc>" .. enter_how .. str
