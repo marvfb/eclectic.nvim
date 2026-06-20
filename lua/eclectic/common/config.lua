@@ -11,17 +11,19 @@ local default_config = {
 	emacs = {
 		-- Defines a set of rules for allowed keybindings. Has a lower priority than deny_rules.
 		allow_rules = {
-			-- Key regex, mode set
+			-- "Key regex"
+			-- { "Key regex", { modes }}
 			{ ".*", { "i", "c" } },
 		},
 		-- Defines a set of rules for denied keybindings. Has a higher priority than allow_rules.
 		deny_rules = {
-			-- Key regex, mode set
+			-- "Key regex"
+			-- { "Key regex", { modes } }
 			"<Tab>",
 			"<C-g>",
 		},
 		key_translations = {
-			-- Key, Other key
+			-- ["Key"] = "Other key"
 		},
 		extra_features = { "tab_bar_mode" },
 	},
@@ -29,6 +31,7 @@ local default_config = {
 
 local function allowed_modes(key, proposed_modes, allow_rules, deny_rules)
 	local possible_modes = {}
+
 	for _, rule in ipairs(allow_rules) do
 		rule = util.as_table(rule)
 		local pattern = rule[1]
