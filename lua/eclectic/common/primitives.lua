@@ -2,13 +2,14 @@ local M = {}
 
 -- TODO: Find better names
 
-M.all_modes = { "i", "c", "x", "s", "t" }
-M.input_modes = { "i", "c", "x", "s" }
-M.navigation_modes = { "i", "x", "s" }
-M.editing_modes = { "i", "c" }
+M.all_modes = { "n", "i", "s", "x", "c", "t" }
+M.nonterminal_modes = { "n", "i", "s", "x", "c" }
+M.navigation_modes = { "n", "i", "s", "x" }
+M.editing_modes = { "i", "s", "c" }
 M.insert_mode = "i"
 M.command_mode = "c"
 M.visual_mode = "x"
+M.select_mode = "s"
 M.terminal_mode = "t"
 
 local mt = {}
