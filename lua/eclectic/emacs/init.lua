@@ -1,7 +1,7 @@
 local M = {}
 
 local util = require("eclectic.common.util")
-local primitives = require("eclectic.common.primitives")
+local prims = require("eclectic.common.primitives")
 
 local uarg = require("eclectic.emacs.universal_argument")
 local marks = require("eclectic.emacs.marks")
@@ -36,7 +36,7 @@ local function select_other_window(normal, opts)
 		local num_windows = #vim.api.nvim_tabpage_list_wins(0)
 		local res = ""
 		if num_windows < 2 then
-			res = res .. primitives.ex_command("new")
+			res = res .. prims.ex_command("new")
 		end
 		return res .. normal("<C-w>" .. util.ternary(reverse, "p", "w"))
 	end
@@ -56,8 +56,8 @@ M.global_bindings = {
 	-- 	{ desc = "self-insert-command", expr = true },
 	-- }),
 
-	["<C-@>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-@>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.prefix_argument(function()
 				marks.push_mark_ring()
@@ -71,8 +71,8 @@ M.global_bindings = {
 		{ desc = "set-mark-command", expr = true },
 	}),
 	["<C-a>"] = {
-		unpack(primitives.bindings(primitives.normal, {
-			primitives.navigation_modes,
+		unpack(prims.bindings(prims.normal, {
+			prims.navigation_modes,
 			-- Has to be this way since a failed h/j/k/l cancels the command
 			function()
 				return uarg.pass_count(function(count)
@@ -83,24 +83,24 @@ M.global_bindings = {
 			{ desc = "move-beggining-of-line", expr = true },
 		})),
 		{
-			primitives.command_mode,
+			prims.command_mode,
 			uarg.repeat_times("<Home>", { opposite = "<End>" }),
 			{ desc = "move-beggining-of-line", expr = true },
 		},
 	},
 	["<C-b>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		uarg.repeat_times("<Left>", { opposite = "<Right>" }),
 		{ desc = "backward-char", expr = true },
 	},
 	["<C-d>"] = {
-		primitives.editing_modes,
+		prims.editing_modes,
 		uarg.repeat_times("<Del>", { opposite = "<Bs>" }),
 		{ desc = "delete-char", expr = true },
 	},
 	["<C-e>"] = {
-		unpack(primitives.bindings(primitives.normal, {
-			primitives.navigation_modes,
+		unpack(prims.bindings(prims.normal, {
+			prims.navigation_modes,
 			-- Has to be this way since a failed h/j/k/l cancels the command
 			function()
 				return uarg.pass_count(function(count)
@@ -111,78 +111,78 @@ M.global_bindings = {
 			{ desc = "move-end-of-line", expr = true },
 		})),
 		{
-			primitives.command_mode,
+			prims.command_mode,
 			uarg.repeat_times("<End>", { opposite = "<Home>" }),
 			{ desc = "move-end-of-line", expr = true },
 		},
 	},
 	["<C-f>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		uarg.repeat_times("<Right>", { opposite = "<Left>" }),
 		{ desc = "forward-char", expr = true },
 	},
 	-- TODO: Special interaction with searching and other stuff
-	["<C-g>"] = { primitives.command_mode, "<Esc>", { desc = "keyboard-quit" } },
+	["<C-g>"] = { prims.command_mode, "<Esc>", { desc = "keyboard-quit" } },
 	-- C-j is already a neovim binding
 	["<C-k>"] = {
 		{
-			primitives.insert_mode,
+			prims.insert_mode,
 			uarg.format_count(
-				primitives.normal.from_insert("%dD"),
-				{ opposite = primitives.normal.from_insert("v0%dkd"), zero = primitives.normal.from_insert("v0d") }
+				prims.normal.from_insert("%dD"),
+				{ opposite = prims.normal.from_insert("v0%dkd"), zero = prims.normal.from_insert("v0d") }
 			),
 			{ desc = "kill-line", expr = true },
 		},
 		{
-			primitives.command_mode,
+			prims.command_mode,
 			uarg.format_count(
-				primitives.normal.from_command("D"),
-				{ opposite = primitives.normal.from_command("v0d"), zero = primitives.normal.from_command("v0d") }
+				prims.normal.from_command("D"),
+				{ opposite = prims.normal.from_command("v0d"), zero = prims.normal.from_command("v0d") }
 			),
 			{ desc = "kill-line", expr = true },
 		},
 	},
 	["<C-l>"] = {
-		primitives.navigation_modes,
+		prims.navigation_modes,
 		custom_functionality.recenter_top_bottom,
 		{ desc = "recenter-top-bottom" },
 	},
 	["<C-n>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		uarg.repeat_times("<Down>", { opposite = "<Up>" }),
 		{ desc = "next-line", expr = true },
 	},
 	-- TODO: Fill prefix
 	["<C-o>"] = {
-		primitives.insert_mode,
-		uarg.repeat_times(primitives.normal.from_insert("O")),
+		prims.insert_mode,
+		uarg.repeat_times(prims.normal.from_insert("O")),
 		{ desc = "next-line", expr = true },
 	},
 	["<C-p>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		uarg.repeat_times("<Up>", { opposite = "<Down>" }),
 		{ desc = "previous-line", expr = true },
 	},
 	-- C-q exists already
 	["<C-r>"] = {
-		{ primitives.insert_mode, primitives.normal.from_insert("?", ""), { desc = "isearch-backward" } },
-		{ primitives.visual_mode, "?", { desc = "isearch-backward" } },
-		{ primitives.command_mode, "<C-t>", { desc = "isearch-backward" } },
+		{ prims.insert_mode, prims.normal.from_insert("?", ""), { desc = "isearch-backward" } },
+		{ prims.visual_mode, "?", { desc = "isearch-backward" } },
+		{ prims.command_mode, "<C-t>", { desc = "isearch-backward" } },
 	},
 	["<C-s>"] = {
-		{ primitives.insert_mode, primitives.normal.from_insert("/", ""), { desc = "isearch-forward" } },
-		{ primitives.visual_mode, "/", { desc = "isearch-forward" } },
-		{ primitives.command_mode, "<C-g>", { desc = "isearch-forward" } },
+		{ prims.insert_mode, prims.normal.from_insert("/", ""), { desc = "isearch-forward" } },
+		{ prims.visual_mode, "/", { desc = "isearch-forward" } },
+		{ prims.command_mode, "<C-g>", { desc = "isearch-forward" } },
 	},
-	["<C-t>"] = primitives.bindings(primitives.normal, {
-		primitives.editing_modes,
+	["<C-t>"] = prims.bindings(prims.normal, {
+		prims.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("x<Left>%s<Right>p"), { opposite = normal("x<Left>%s<Left>p") })
 		end,
 		{ desc = "transpose-chars", expr = true },
 	}),
 	["<C-u>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		input_handling.consume_inputstream(function(char)
 			local digit = tonumber(char)
 			if digit then
@@ -200,8 +200,8 @@ M.global_bindings = {
 		{ desc = "universal-argument" },
 	},
 	-- TODO: This is not accurate
-	["<C-v>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-v>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function()
 			return uarg.repeat_times("<PageUp>", { opposite = "<PageDown>" })
 		end,
@@ -210,7 +210,7 @@ M.global_bindings = {
 	-- TODO: Test
 	["<C-w>"] = {
 		{
-			primitives.insert_mode,
+			prims.insert_mode,
 			function()
 				vim.cmd.normal("v")
 				marks.jump_mark_ring()
@@ -218,16 +218,16 @@ M.global_bindings = {
 			end,
 			{ desc = "kill-region" },
 		},
-		{ primitives.visual_mode, "d", { desc = "kill-region" } },
+		{ prims.visual_mode, "d", { desc = "kill-region" } },
 	},
 	["<C-y>"] = {
 		{
-			primitives.insert_mode,
-			uarg.prefix_argument(primitives.normal.from_insert("p", "a"), primitives.normal.from_insert("p", "`[i")),
+			prims.insert_mode,
+			uarg.prefix_argument(prims.normal.from_insert("p", "a"), prims.normal.from_insert("p", "`[i")),
 			{ desc = "yank", expr = true },
 		},
 		{
-			primitives.command_mode,
+			prims.command_mode,
 			uarg.prefix_argument(
 				uarg.format_count("<C-r>%d", { zero = "<C-r>0", default = 0 }),
 				uarg.sequence(function()
@@ -235,21 +235,21 @@ M.global_bindings = {
 					string.gsub(unnammed_register, "\n", " ")
 					vim.fn.setreg('"', unnammed_register)
 					-- Command buffer has own set of marks
-				end, primitives.normal.from_command("mzi<Left><Esc>p`z"))
+				end, prims.normal.from_command("mzi<Left><Esc>p`z"))
 			),
 			{ desc = "yank", expr = true },
 		},
 	},
-	["<C-z>"] = { primitives.input_modes, primitives.ex_command("suspend"), { desc = "suspend-frame" } },
+	["<C-z>"] = { prims.nonterminal_modes, prims.ex_command("suspend"), { desc = "suspend-frame" } },
 	-- C-\ unimplemented
 	-- C-] unimplemented
 	["<C-_>"] = {
-		primitives.insert_mode,
-		uarg.format_count(primitives.normal.from_insert("%du")),
+		prims.insert_mode,
+		uarg.format_count(prims.normal.from_insert("%du")),
 		{ desc = "undo", expr = true },
 	},
 	["<C-->"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		input_handling.consume_inputstream(function(char)
 			local digit = tonumber(char)
 			if digit then
@@ -262,163 +262,168 @@ M.global_bindings = {
 		{ desc = "negative-argument" },
 	},
 	["<C-0>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(0)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-1>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(1)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-2>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(2)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-3>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(3)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-4>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(4)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-5>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(5)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-6>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(6)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-7>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(7)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-8>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(8)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-9>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		function()
 			uarg.add_digit(9)
 		end,
 		{ desc = "digit-argument" },
 	},
 	["<C-?>"] = {
-		primitives.insert_mode,
-		uarg.format_count(primitives.normal.from_insert("%d<C-r>")),
+		prims.insert_mode,
+		uarg.format_count(prims.normal.from_insert("%d<C-r>")),
 		{ desc = "undo-redo" },
 	},
 	-- TODO: test
 	["<C-S-Bs>"] = {
-		primitives.insert_mode,
+		prims.insert_mode,
 		uarg.format_count(
-			primitives.normal.from_insert("%ddd"),
-			{ opposite = primitives.normal.from_insert("V%dkd"), zero = primitives.normal.from_insert("0d$") }
+			prims.normal.from_insert("%ddd"),
+			{ opposite = prims.normal.from_insert("V%dkd"), zero = prims.normal.from_insert("0d$") }
 		),
 		{ desc = "kill-whole-line", expr = true },
 	},
-	-- C-Bs exists as a default
+	["<C-Bs>"] = {
+		prims.editing_modes,
+		-- TODO: I want C-w semantics but for the opposite I would need to change to normal mode
+		uarg.repeat_times("<C-w>", { opposite = "" })({ desc = "kill-whole-line", expr = true }),
+		{ desc = "kill-whole-line", expr = true },
+	},
 
 	-- TODO: Find appropriate help pages for all of these
 	["<C-h>a"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("help "),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("help "),
 		{ desc = "about-emacs" },
 	},
 
 	["<C-x><C-@>"] = {
-		primitives.navigation_modes,
+		prims.navigation_modes,
 		function()
 			marks.jump_global_mark_ring()
 			marks.pop_global_mark_ring()
 		end,
 		{ desc = "pop-global-mark" },
 	},
-	["<C-x><C-b>"] = { primitives.all_modes, primitives.ex_command("ls"), { desc = "list-buffers" } },
+	["<C-x><C-b>"] = { prims.all_modes, prims.ex_command("ls"), { desc = "list-buffers" } },
 	["<C-x><C-c>"] = {
-		primitives.all_modes,
-		uarg.prefix_argument(primitives.ex_command("qa"), primitives.ex_command("wqa")),
+		prims.all_modes,
+		uarg.prefix_argument(prims.ex_command("qa"), prims.ex_command("wqa")),
 		{ desc = "save-buffers-kill-terminal", expr = true },
 	},
 	["<C-x><C-d>"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("e " .. get_cwd),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("e " .. get_cwd),
 		{ desc = "list-directory" },
 	},
 	["<C-x><C-f>"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("e " .. get_cwd),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("e " .. get_cwd),
 		{ desc = "find-file" },
 	},
 	-- TODO: incorrect. is technically its own modes
 	["<C-x><Tab>"] = {
-		primitives.visual_mode,
+		prims.visual_mode,
 		uarg.sequence(uarg.repeat_times(">gv", { opposite = "<gv" }), "v"),
 		{ desc = "indent region rigidly arg columns", expr = true },
 	},
 	["<C-x><C-j>"] = {
-		primitives.all_modes,
-		primitives.ex_command("e ."),
+		prims.all_modes,
+		prims.ex_command("e ."),
 		{ desc = "dired-jump" },
 	},
-	["<C-x><C-l>"] = { primitives.visual_mode, "u", { desc = "downcase-region" } },
+	["<C-x><C-l>"] = { prims.visual_mode, "u", { desc = "downcase-region" } },
 	-- set-goal-column unimplemented
 	-- TODO: Implement
 	["<C-x><C-o>"] = {
-		primitives.insert_mode,
+		prims.insert_mode,
 		custom_functionality.delete_blank_lines,
 		{ desc = "delete-blank-lines" },
 	},
 	["<C-x><C-q>"] = {
-		primitives.all_modes,
-		primitives.ex_command("setlocal modifiable!"),
+		prims.all_modes,
+		prims.ex_command("setlocal modifiable!"),
 		{ desc = "read-only-mode" },
 	},
 	-- TODO: C-x C-r
-	["<C-x><C-s>"] = { primitives.all_modes, primitives.ex_command("w"), { desc = "save-buffer" } },
+	["<C-x><C-s>"] = { prims.all_modes, prims.ex_command("w"), { desc = "save-buffer" } },
 	-- TODO: implement transpose-lines
-	["<C-x><C-u>"] = { primitives.visual_mode, "U", { desc = "uppercase region" } },
+	["<C-x><C-u>"] = { prims.visual_mode, "U", { desc = "uppercase region" } },
 	["<C-x><C-v>"] = {
-		primitives.insert_mode,
-		primitives.ex_command("bw") .. primitives.interactive_ex_command.from_insert("e " .. get_cwd),
+		prims.insert_mode,
+		prims.ex_command("bw") .. prims.interactive_ex_command.from_insert("e " .. get_cwd),
 		{ desc = "find-alternate-file" },
 	},
 	["<C-x><C-w>"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("w " .. get_cwd),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("w " .. get_cwd),
 		{ desc = "write-file" },
 	},
 	["<C-x><C-x>"] = {
 		{
-			primitives.insert_mode,
+			prims.insert_mode,
 			function()
 				local pos = marks.peek_mark_ring()
 				marks.push_mark_ring()
@@ -426,35 +431,35 @@ M.global_bindings = {
 			end,
 			{ desc = "exchange-point-and-mark" },
 		},
-		{ primitives.visual_mode, "o", { desc = "exchange-point-and-mark" } },
+		{ prims.visual_mode, "o", { desc = "exchange-point-and-mark" } },
 	},
 	-- TODO: Theoretically, there is a prefix arg
-	["<C-x><Space>"] = { primitives.visual_mode, "<C-v>", { desc = "rectangle-mark-mode" } },
+	["<C-x><Space>"] = { prims.visual_mode, "<C-v>", { desc = "rectangle-mark-mode" } },
 	-- set-selective-display unimplemented
 	-- TODO: Abbrevs
-	["<C-x>'"] = { primitives.visual_mode, "<C-v>", { desc = "rectangle-mark-mode" } },
+	["<C-x>'"] = { prims.visual_mode, "<C-v>", { desc = "rectangle-mark-mode" } },
 	-- TODO: Kmacros
-	["<C-x>("] = { primitives.visual_mode, "<C-v>", { desc = "rectangle-mark-mode" } },
-	["<C-x>)"] = { primitives.visual_mode, "<C-v>", { desc = "rectangle-mark-mode" } },
-	["<C-x>*"] = { primitives.editing_modes, "<C-r>=", { desc = "calc-dispatch" } },
+	["<C-x>("] = { prims.visual_mode, "<C-v>", { desc = "rectangle-mark-mode" } },
+	["<C-x>)"] = { prims.visual_mode, "<C-v>", { desc = "rectangle-mark-mode" } },
+	["<C-x>*"] = { prims.editing_modes, "<C-r>=", { desc = "calc-dispatch" } },
 	-- balance-windows unimplemented
 	-- shrink-window-if-larger-than-buffer unimplemented
 	-- TODO: set-fill-prefix
-	["<C-x>0"] = { primitives.all_modes, primitives.ex_command("quit"), { desc = "delete-window" } },
-	["<C-x>1"] = { primitives.all_modes, primitives.ex_command("only"), { desc = "delete-other-windows" } },
+	["<C-x>0"] = { prims.all_modes, prims.ex_command("quit"), { desc = "delete-window" } },
+	["<C-x>1"] = { prims.all_modes, prims.ex_command("only"), { desc = "delete-other-windows" } },
 	["<C-x>2"] = {
-		primitives.navigation_modes,
-		uarg.format_count(primitives.ex_command("%dbelow split")),
+		prims.navigation_modes,
+		uarg.format_count(prims.ex_command("%dbelow split")),
 		{ desc = "split-window-below", expr = true },
 	},
 	["<C-x>3"] = {
-		primitives.navigation_modes,
-		uarg.format_count(primitives.ex_command("%drightb vsplit")),
+		prims.navigation_modes,
+		uarg.format_count(prims.ex_command("%drightb vsplit")),
 		{ desc = "split-window-right", expr = true },
 	},
 	-- comment-set-column unimplemented
-	["<C-x><"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x><"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.pass_count(function(count)
 				count = count or (vim.api.nvim_win_get_width(0) - 2)
@@ -472,8 +477,8 @@ M.global_bindings = {
 		{ desc = "scroll-left", expr = true },
 	}),
 	-- what-cursor-position unimplemented
-	["<C-x>>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x>>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.pass_count(function(count)
 				count = count or (vim.api.nvim_win_get_width(0) - 2)
@@ -490,66 +495,66 @@ M.global_bindings = {
 		end,
 		{ desc = "scroll-right", expr = true },
 	}),
-	["<C-x>^"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x>^"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d<C-w>+"), { opposite = normal("%d<C-w>-") })
 		end,
 		{ desc = "enlarge-window", expr = true },
 	}),
-	["<C-x>`"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x>`"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.prefix_argument(uarg.format_count(normal("%d]q"), { opposite = "%d[q" }), normal("[Q"))
 		end,
 		{ desc = "next-error", expr = true },
 	}),
 	["<C-x>b"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("b "),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("b "),
 		{ desc = "switch-to-buffer" },
 	},
 	["<C-x>d"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("e " .. get_cwd),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("e " .. get_cwd),
 		{ desc = "dired" },
 	},
 	["<C-x>h"] = {
-		primitives.insert_mode,
-		uarg.sequence(primitives.normal.from_insert("G$"), primitives.interactive_visual.from_insert("gg0")),
+		prims.insert_mode,
+		uarg.sequence(prims.normal.from_insert("G$"), prims.interactive_visual.from_insert("gg0")),
 		{ desc = "mark-whole-buffer", expr = true },
 	},
 	["<C-x>i"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("read " .. get_cwd),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("read " .. get_cwd),
 		{ desc = "insert-file" },
 	},
-	["<C-x>k"] = { primitives.all_modes, primitives.ex_command("bw"), { desc = "kill-buffer" } },
+	["<C-x>k"] = { prims.all_modes, prims.ex_command("bw"), { desc = "kill-buffer" } },
 	-- count-lines-page unimplemented
-	["<C-x>o"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x>o"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.repeat_times(normal("<C-w>w"), { opposite = normal("<C-w>p") })
 		end,
 		{ desc = "other-window", expr = true },
 	}),
-	["<C-x>s"] = { primitives.all_modes, primitives.ex_command("wa"), { desc = "save-some-buffers" } },
-	["<C-x>z"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x>s"] = { prims.all_modes, prims.ex_command("wa"), { desc = "save-some-buffers" } },
+	["<C-x>z"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return normal(".")
 		end,
 		{ desc = "repeat" },
 	}),
-	["<C-x>{"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x>{"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d<C-w><"), { opposite = normal("%d<C-w>>") })
 		end,
 		{ desc = "shrink-window-horizontally", expr = true },
 	}),
-	["<C-x>}"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x>}"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d<C-w>>"), { opposite = normal("%d<C-w><") })
 		end,
@@ -558,32 +563,29 @@ M.global_bindings = {
 	-- TODO: C-x C-+, etc. mode
 	-- TODO: Test
 	["<C-x><C-;>"] = {
-		primitives.insert_mode,
-		uarg.format_count(
-			primitives.normal.from_insert("%dgcc"),
-			{ opposite = primitives.normal.from_insert("V%dkgc") }
-		),
+		prims.insert_mode,
+		uarg.format_count(prims.normal.from_insert("%dgcc"), { opposite = prims.normal.from_insert("V%dkgc") }),
 		{ desc = "comment-line", expr = true },
 	},
 
 	-- default-indent-new-line unimplemented
 	["<C-M-o>"] = {
-		primitives.insert_mode,
+		prims.insert_mode,
 		custom_functionality.move_rest_of_line_down,
 		{ desc = "split-line" },
 	},
 	["<C-M-r>"] = {
-		{ primitives.insert_mode, primitives.normal.from_insert("?", ""), { desc = "isearch-backward-regexp" } },
-		{ primitives.visual_mode, "?", { desc = "isearch-backward-regexp" } },
-		{ primitives.command_mode, "<C-t>", { desc = "isearch-backward-regexp" } },
+		{ prims.insert_mode, prims.normal.from_insert("?", ""), { desc = "isearch-backward-regexp" } },
+		{ prims.visual_mode, "?", { desc = "isearch-backward-regexp" } },
+		{ prims.command_mode, "<C-t>", { desc = "isearch-backward-regexp" } },
 	},
 	["<C-M-s>"] = {
-		{ primitives.insert_mode, primitives.normal.from_insert("/", ""), { desc = "isearch-forward-regexp" } },
-		{ primitives.visual_mode, "/", { desc = "isearch-forward-regexp" } },
-		{ primitives.command_mode, "<C-g>", { desc = "isearch-forward-regexp" } },
+		{ prims.insert_mode, prims.normal.from_insert("/", ""), { desc = "isearch-forward-regexp" } },
+		{ prims.visual_mode, "/", { desc = "isearch-forward-regexp" } },
+		{ prims.command_mode, "<C-g>", { desc = "isearch-forward-regexp" } },
 	},
-	["<C-M-v>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-M-v>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.sequence(
 				select_other_window(normal),
@@ -596,30 +598,30 @@ M.global_bindings = {
 	-- append-next-kill unimplemented
 	-- indent-region unimplemented
 	["<M-!>"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("!"),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("!"),
 		{ desc = "shell-command" },
 	},
 	["<M-%>"] = {
-		primitives.navigation_modes,
-		primitives.interactive_ex_command.from_insert("%s///c", "<Left><Left><Left>"),
+		prims.navigation_modes,
+		prims.interactive_ex_command.from_insert("%s///c", "<Left><Left><Left>"),
 		{ desc = "query-replace" },
 	},
 	["<M-&>"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("term "),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("term "),
 		{ desc = "async-shell-command" },
 	},
 	-- eval-expression unimplemented
 	-- commend-dwim unimplemented
 	-- count-words-region unimplemented
-	["<M->>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<M->>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function()
 			return uarg.pass_count(function(count)
 				count = count or 0
 				return string.format(
-					primitives.ex_command("go %d"),
+					prims.ex_command("go %d"),
 					math.max(util.clamp(10 - count, 0, 10) / 10 * vim.fn.wordcount().bytes, 1)
 				)
 			end)
@@ -627,66 +629,66 @@ M.global_bindings = {
 		{ desc = "end-of-buffer", expr = true },
 	}),
 	-- mark-word unimplemented
-	["<M-a>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<M-a>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d(", "i"), { opposite = normal("%d)", "a") })
 		end,
 		{ desc = "backward-sentence", expr = true },
 	}),
 	["<M-b>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		uarg.repeat_times("<C-Left>", { opposite = "<C-Right>" }),
 		{ desc = "backward-word", expr = true },
 	},
-	["<M-c>"] = primitives.bindings(primitives.normal, {
-		primitives.editing_modes,
+	["<M-c>"] = prims.bindings(prims.normal, {
+		prims.editing_modes,
 		function(normal)
 			return uarg.repeat_times(normal("guevUw", "a"), { opposite = normal("vbguvUge") })
 		end,
 		{ desc = "capitalize-word", expr = true },
 	}),
-	["<M-d>"] = primitives.bindings(primitives.normal, {
-		primitives.editing_modes,
+	["<M-d>"] = prims.bindings(prims.normal, {
+		prims.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("%dde"), { opposite = normal("v%dbd") })
 		end,
 		{ desc = "kill-word", expr = true },
 	}),
-	["<M-e>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<M-e>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d)", "a"), { opposite = normal("%d(", "i") })
 		end,
 		{ desc = "forward-sentence", expr = true },
 	}),
 	["<M-f>"] = {
-		primitives.input_modes,
+		prims.nonterminal_modes,
 		uarg.repeat_times("<C-Right>", { opposite = "<C-Left>" }),
 		{ desc = "forward-word", expr = true },
 	},
 	["<M-h>"] = {
-		primitives.insert_mode,
+		prims.insert_mode,
 		uarg.format_count(
-			primitives.interactive_visual.from_insert("%d)o"),
-			{ opposite = primitives.interactive_visual.from_insert("%d(o") }
+			prims.interactive_visual.from_insert("%d)o"),
+			{ opposite = prims.interactive_visual.from_insert("%d(o") }
 		),
 		{ desc = "mark-paragraph", expr = true },
 	},
 	["<M-k>"] = {
-		primitives.insert_mode,
-		uarg.format_count(primitives.normal.from_insert("%dd)"), { opposite = primitives.normal.from_insert("v%d(d") }),
+		prims.insert_mode,
+		uarg.format_count(prims.normal.from_insert("%dd)"), { opposite = prims.normal.from_insert("v%d(d") }),
 		{ desc = "kill-sentence", expr = true },
 	},
-	["<M-l>"] = primitives.bindings(primitives.normal, {
-		primitives.editing_modes,
+	["<M-l>"] = prims.bindings(prims.normal, {
+		prims.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("%dguw"), { opposite = normal("v%dbgu`]") })
 		end,
 		{ desc = "downcase-word", expr = true },
 	}),
-	["<M-m>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<M-m>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return normal("^")
 		end,
@@ -694,30 +696,30 @@ M.global_bindings = {
 	}),
 	-- TODO: M-r is C-l but with H M L instead of zt zz zb
 	-- TODO: transpose-words
-	["<M-u>"] = primitives.bindings(primitives.normal, {
-		primitives.editing_modes,
+	["<M-u>"] = prims.bindings(prims.normal, {
+		prims.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("%dgUw"), { opposite = normal("v%dbgU`]") })
 		end,
 		{ desc = "upcase-word", expr = true },
 	}),
 	-- TODO: Inaccurate
-	["<M-v>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<M-v>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function()
 			return uarg.repeat_times("<PageDown>", { opposite = "<PageUp>" })
 		end,
 		{ desc = "scroll-down-command", expr = true },
 	}),
 	["<M-w>"] = {
-		primitives.visual_mode,
+		prims.visual_mode,
 		"y",
 		{ desc = "kill-ring-save" },
 	},
 	-- TODO: M-y
 	-- TODO: Not quite correct. Emacs' version also goes to new lines
 	["<M-z>"] = {
-		primitives.insert_mode,
+		prims.insert_mode,
 		input_handling.consume_inputstream(function(char, state)
 			local action = uarg.format_count("kill-ring-save" .. char, { opposite = "v%dF" .. char .. "d" })()
 			vim.cmd.normal(action, char)
@@ -730,8 +732,8 @@ M.global_bindings = {
 		end),
 		{ desc = "zap-to-char" },
 	},
-	["<M-{>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<M-{>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d{", "i"), { opposite = normal("%d}", "a") })
 		end,
@@ -739,12 +741,12 @@ M.global_bindings = {
 	}),
 	-- TODO: Inaccurate
 	["<C-u><M-|>"] = {
-		primitives.visual_mode,
-		primitives.interactive_ex_command.from_insert("!"),
+		prims.visual_mode,
+		prims.interactive_ex_command.from_insert("!"),
 		{ desc = "filter region through a shell command" },
 	},
-	["<M-}>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<M-}>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
 			return uarg.format_count(normal("%d}", "a"), { opposite = normal("%d{", "i") })
 		end,
@@ -753,21 +755,21 @@ M.global_bindings = {
 	-- TODO: not-modified
 	-- recenter-other-window, scroll-other-window-down unimplemented
 	["<C-M-%>"] = {
-		primitives.navigation_modes,
-		primitives.interactive_ex_command.from_insert("%s///c", "<Left><Left><Left>"),
+		prims.navigation_modes,
+		prims.interactive_ex_command.from_insert("%s///c", "<Left><Left><Left>"),
 		{ desc = "query-replace-regexp" },
 	},
 
 	-- XXX: Ended off at isearch-forward-symbol-at-point
 
 	-- Motion
-	["<M-<>"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<M-<>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function()
 			return uarg.pass_count(function(count)
 				count = count or 0
 				return string.format(
-					primitives.ex_command("go %d"),
+					prims.ex_command("go %d"),
 					math.max(util.clamp(count, 0, 10) / 10 * vim.fn.wordcount().bytes, 1)
 				)
 			end)
@@ -775,41 +777,41 @@ M.global_bindings = {
 		{ desc = "go to buffer beggining", expr = true },
 	}),
 	["<M-g>g"] = {
-		primitives.navigation_modes,
-		uarg.format_count(primitives.ex_command("%d"), { default = prompts.prompt_count }),
+		prims.navigation_modes,
+		uarg.format_count(prims.ex_command("%d"), { default = prompts.prompt_count }),
 		{ desc = "goto line", expr = true },
 	},
 	["<M-g>c"] = {
-		primitives.navigation_modes,
-		uarg.format_count(primitives.ex_command("go %d"), { default = prompts.prompt_count }),
+		prims.navigation_modes,
+		uarg.format_count(prims.ex_command("go %d"), { default = prompts.prompt_count }),
 		{ desc = "goto char", expr = true },
 	},
 
 	-- Killing and Deleting
 	["<Bs>"] = {
-		primitives.editing_modes,
+		prims.editing_modes,
 		uarg.repeat_times("<Bs>", { opposite = "<Del>" }),
 		{ desc = "kill character forward", expr = true },
 	},
-	["<M-Bs>"] = primitives.bindings(primitives.normal, {
-		primitives.editing_modes,
+	["<M-Bs>"] = prims.bindings(prims.normal, {
+		prims.editing_modes,
 		function(normal)
 			return uarg.format_count(normal("v%dbd"), { opposite = normal("%dde") })
 		end,
 		{ desc = "kill word backward", expr = true },
 	}),
 	["<C-x><Bs>"] = {
-		primitives.insert_mode,
-		uarg.format_count(primitives.normal.from_insert("v%d(d"), { opposite = primitives.normal.from_insert("%dd)") }),
+		prims.insert_mode,
+		uarg.format_count(prims.normal.from_insert("v%d(d"), { opposite = prims.normal.from_insert("%dd)") }),
 		{ desc = "kill sentence backward", expr = true },
 	},
 
 	-- Marking
 	["<M-@>"] = {
-		primitives.insert_mode,
+		prims.insert_mode,
 		uarg.format_count(
-			primitives.interactive_visual.from_insert("%deo"),
-			{ opposite = primitives.interactive_visual.from_insert("%dbo") }
+			prims.interactive_visual.from_insert("%deo"),
+			{ opposite = prims.interactive_visual.from_insert("%dbo") }
 		),
 		{ desc = "set mark words away", expr = true },
 	},
@@ -818,42 +820,36 @@ M.global_bindings = {
 
 	-- Multiple Windows
 	["<C-x>4b"] = {
-		primitives.insert_mode,
-		uarg.sequence(
-			select_other_window(primitives.normal.from_insert),
-			primitives.interactive_ex_command.from_insert("e ")
-		),
+		prims.insert_mode,
+		uarg.sequence(select_other_window(prims.normal.from_insert), prims.interactive_ex_command.from_insert("e ")),
 		{ desc = "select buffer in other window", expr = true },
 	},
-	["<C-x>4d"] = primitives.bindings(primitives.normal, {
-		primitives.navigation_modes,
+	["<C-x>4d"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
 		function(normal)
-			return uarg.sequence(select_other_window(normal), primitives.ex_command("e ."))
+			return uarg.sequence(select_other_window(normal), prims.ex_command("e ."))
 		end,
 		{ desc = "run Dired in other window", expr = true },
 	}),
 	["<C-x>4."] = {
-		primitives.insert_mode,
-		uarg.sequence(
-			select_other_window(primitives.normal.from_insert),
-			primitives.interactive_ex_command.from_insert("tag ")
-		),
+		prims.insert_mode,
+		uarg.sequence(select_other_window(prims.normal.from_insert), prims.interactive_ex_command.from_insert("tag ")),
 		{ desc = "find tag in other window", expr = true },
 	},
 
 	-- Formatting
 	["<Tab>"] = {
-		{ primitives.insert_mode, primitives.normal.from_insert("=="), { desc = "indent current line" } },
-		{ primitives.visual_mode, "=", { desc = "indent region" } },
+		{ prims.insert_mode, prims.normal.from_insert("=="), { desc = "indent current line" } },
+		{ prims.visual_mode, "=", { desc = "indent region" } },
 	},
-	["<C-M-\\>"] = { primitives.visual_mode, "=", { desc = "indent region" } },
+	["<C-M-\\>"] = { prims.visual_mode, "=", { desc = "indent region" } },
 	["<M-^>"] = {
-		primitives.insert_mode,
-		uarg.prefix_argument("<Up>" .. primitives.normal.from_insert("J"), "J"),
+		prims.insert_mode,
+		uarg.prefix_argument("<Up>" .. prims.normal.from_insert("J"), "J"),
 		{ desc = "join line with previous (with arg, next)", expr = true },
 	},
 	["<C-x>f"] = {
-		primitives.insert_mode,
+		prims.insert_mode,
 		custom_functionality.set_fill_column,
 		{ desc = "set fill column to arg" },
 	},
@@ -863,20 +859,20 @@ M.global_bindings = {
 	-- Buffers
 
 	-- Transposing
-	["<M-t>"] = { primitives.editing_modes, custom_functionality.transpose_words, { desc = "transpose words" } },
-	["<C-x><C-t>"] = { primitives.editing_modes, custom_functionality.transpose_lines, { desc = "transpose lines" } },
+	["<M-t>"] = { prims.editing_modes, custom_functionality.transpose_words, { desc = "transpose words" } },
+	["<C-x><C-t>"] = { prims.editing_modes, custom_functionality.transpose_lines, { desc = "transpose lines" } },
 
 	-- Spelling Check
 	["<M-$>"] = {
-		primitives.insert_mode,
-		primitives.normal.from_insert("z="),
+		prims.insert_mode,
+		prims.normal.from_insert("z="),
 		{ desc = "check spelling of current word" },
 	},
 
 	-- Tags
 	["<M-.>"] = {
-		primitives.insert_mode,
-		primitives.interactive_ex_command.from_insert("tag "),
+		prims.insert_mode,
+		prims.interactive_ex_command.from_insert("tag "),
 		{ desc = "find a tag" },
 	},
 
@@ -897,8 +893,8 @@ M.lisp_interaction_mode_bindings = {}
 -- cua-mode
 
 M.tab_bar_mode = {
-	["<C-S-Tab>"] = { primitives.all_modes, primitives.ex_command("tabprevious"), { desc = "tab-previous" } },
-	["<C-Tab>"] = { primitives.all_modes, primitives.ex_command("tabnext"), { desc = "tab-next" } },
+	["<C-S-Tab>"] = { prims.all_modes, prims.ex_command("tabprevious"), { desc = "tab-previous" } },
+	["<C-Tab>"] = { prims.all_modes, prims.ex_command("tabnext"), { desc = "tab-next" } },
 }
 
 -- TODO: Apply Equivalent keys and shift selection as a post-processing step
