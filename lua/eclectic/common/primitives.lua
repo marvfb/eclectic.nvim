@@ -24,16 +24,15 @@ end
 M.normal = {}
 setmetatable(M.normal, mt)
 function M.normal.from_mode(mode)
-	return function(str, reenter_how)
-		reenter_how = reenter_how or "i"
+	return function(str)
 		if mode == "n" or mode == "x" then
-			return str .. reenter_how
+			return str
 		elseif mode == "i" or mode == "s" then
-			return "<Esc>" .. str .. reenter_how
+			return "<C-o>" .. str
 		elseif mode == "c" then
-			return "<C-f>" .. str .. reenter_how .. "<C-c><Cmd>redraw<CR>"
+			return "<C-f>" .. str .. "<C-c><Cmd>redraw<CR>"
 		elseif mode == "t" then
-			return "<C-\\><C-n>" .. str .. reenter_how
+			return "<C-\\><C-o>" .. str
 		end
 		error("unexpected mode: " .. mode)
 		return nil

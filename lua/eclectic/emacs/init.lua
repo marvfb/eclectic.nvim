@@ -176,13 +176,14 @@ M.global_bindings = {
 		{ prims.visual_mode, "/", { desc = "isearch-forward" } },
 		{ prims.command_mode, "<C-g>", { desc = "isearch-forward" } },
 	},
-	["<C-t>"] = prims.bindings(prims.normal, {
-		prims.editing_modes,
-		function(normal)
-			return uarg.format_count(normal("x<Left>%s<Right>p"), { opposite = normal("x<Left>%s<Left>p") })
-		end,
-		{ desc = "transpose-chars", expr = true },
-	}),
+	-- FIXME: Doesnt work
+	-- ["<C-t>"] = prims.bindings(prims.normal, {
+	-- 	prims.editing_modes,
+	-- 	function(normal)
+	-- 		return uarg.format_count(normal("x<Left>%s<Right>p"), { opposite = normal("x<Left>%s<Left>p") })
+	-- 	end,
+	-- 	{ desc = "transpose-chars", expr = true },
+	-- }),
 	["<C-u>"] = {
 		prims.nonterminal_modes,
 		input_handling.consume_inputstream(function(char)
@@ -228,6 +229,7 @@ M.global_bindings = {
 			uarg.prefix_argument(prims.normal.from_insert("p", "a"), prims.normal.from_insert("p", "`[i")),
 			{ desc = "yank", expr = true },
 		},
+		-- TODO: Maybe implement this under "custom functionality"
 		{
 			prims.command_mode,
 			uarg.prefix_argument(
@@ -644,13 +646,14 @@ M.global_bindings = {
 		uarg.repeat_times("<C-Left>", { opposite = "<C-Right>" }),
 		{ desc = "backward-word", expr = true },
 	},
-	["<M-c>"] = prims.bindings(prims.normal, {
-		prims.editing_modes,
-		function(normal)
-			return uarg.repeat_times(normal("guevUw", "a"), { opposite = normal("vbguvUge") })
-		end,
-		{ desc = "capitalize-word", expr = true },
-	}),
+	-- TODO: Make more solid
+	-- ["<M-c>"] = prims.bindings(prims.normal, {
+	-- 	prims.editing_modes,
+	-- 	function(normal)
+	-- 		return uarg.repeat_times(normal("guevUw", "a"), { opposite = normal("vbguvUge") })
+	-- 	end,
+	-- 	{ desc = "capitalize-word", expr = true },
+	-- }),
 	["<M-d>"] = prims.bindings(prims.normal, {
 		prims.editing_modes,
 		function(normal)
