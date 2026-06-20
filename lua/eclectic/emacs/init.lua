@@ -921,6 +921,41 @@ M.tab_bar_mode = {
 	["<C-Tab>"] = { prims.all_modes, prims.ex_command("tabnext"), { desc = "tab-next" } },
 }
 
+M.move_text = {
+	["<M-Down>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return uarg.pass_count(function(count)
+				count = count or 1
+				if count < 0 then
+					return string.format(visual(":m '<%d<CR>") .. visual("=", "gv"), count - 1)
+				elseif count > 0 then
+					return string.format(visual(":m '>+%d<CR>") .. visual("=", "gv"), count)
+				else
+					return ""
+				end
+			end)
+		end,
+		{ desc = "move-line-down", expr = true },
+	}),
+	["<M-Up>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return uarg.pass_count(function(count)
+				count = count or -1
+				if count < 0 then
+					return string.format(visual(":m '<%d<CR>") .. visual("=", "gv"), count - 1)
+				elseif count > 0 then
+					return string.format(visual(":m '>+%d<CR>") .. visual("=", "gv"), count)
+				else
+					return ""
+				end
+			end)
+		end,
+		{ desc = "move-line-up", expr = true },
+	}),
+}
+
 -- TODO: Apply Equivalent keys and shift selection as a post-processing step
 
 local equivalence_classes = {
