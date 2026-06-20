@@ -17,7 +17,7 @@ local mt = {}
 function mt.__index(table, key)
 	local mode = string.match(key, "^from_(.).*")
 	-- from_visual should work
-	string.gsub(mode, "v", "x")
+	mode = string.gsub(mode, "v", "x")
 	return table.from_mode(mode)
 end
 

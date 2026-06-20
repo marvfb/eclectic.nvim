@@ -70,24 +70,17 @@ M.global_bindings = {
 		end,
 		{ desc = "set-mark-command", expr = true },
 	}),
-	["<C-a>"] = {
-		unpack(prims.bindings(prims.normal, {
-			prims.navigation_modes,
-			-- Has to be this way since a failed h/j/k/l cancels the command
-			function()
-				return uarg.pass_count(function(count)
-					count = (count or 1) - 1
-					return "<Home>" .. string.rep(util.ternary(count > 0, "<Down>", "<Up>"), math.abs(count))
-				end)
-			end,
-			{ desc = "move-beggining-of-line", expr = true },
-		})),
-		{
-			prims.command_mode,
-			uarg.repeat_times("<Home>", { opposite = "<End>" }),
-			{ desc = "move-beggining-of-line", expr = true },
-		},
-	},
+	["<C-a>"] = prims.bindings(prims.normal, {
+		prims.nonterminal_modes,
+		-- Has to be this way since a failed h/j/k/l cancels the command
+		function()
+			return uarg.pass_count(function(count)
+				count = (count or 1) - 1
+				return "<Home>" .. string.rep(util.ternary(count > 0, "<Down>", "<Up>"), math.abs(count))
+			end)
+		end,
+		{ desc = "move-beggining-of-line", expr = true },
+	}),
 	["<C-b>"] = {
 		prims.nonterminal_modes,
 		uarg.repeat_times("<Left>", { opposite = "<Right>" }),
@@ -98,24 +91,17 @@ M.global_bindings = {
 		uarg.repeat_times("<Del>", { opposite = "<Bs>" }),
 		{ desc = "delete-char", expr = true },
 	},
-	["<C-e>"] = {
-		unpack(prims.bindings(prims.normal, {
-			prims.navigation_modes,
-			-- Has to be this way since a failed h/j/k/l cancels the command
-			function()
-				return uarg.pass_count(function(count)
-					count = (count or 1) - 1
-					return "<End>" .. string.rep(util.ternary(count > 0, "<Down>", "<Up>"), math.abs(count))
-				end)
-			end,
-			{ desc = "move-end-of-line", expr = true },
-		})),
-		{
-			prims.command_mode,
-			uarg.repeat_times("<End>", { opposite = "<Home>" }),
-			{ desc = "move-end-of-line", expr = true },
-		},
-	},
+	["<C-e>"] = prims.bindings(prims.normal, {
+		prims.nonterminal_modes,
+		-- Has to be this way since a failed h/j/k/l cancels the command
+		function()
+			return uarg.pass_count(function(count)
+				count = (count or 1) - 1
+				return "<End>" .. string.rep(util.ternary(count > 0, "<Down>", "<Up>"), math.abs(count))
+			end)
+		end,
+		{ desc = "move-end-of-line", expr = true },
+	}),
 	["<C-f>"] = {
 		prims.nonterminal_modes,
 		uarg.repeat_times("<Right>", { opposite = "<Left>" }),
@@ -165,23 +151,17 @@ M.global_bindings = {
 	},
 	-- C-q exists already
 	["<C-r>"] = {
-		unpack(prims.bindings(prims.normal, {
-			prims.navigation_modes,
-			function(normal)
-				return normal("?")
-			end,
-			{ desc = "isearch-backward" },
-		})),
+		{ prims.normal_mode, prims.normal.from_normal("?"), { desc = "isearch-backward" } },
+		{ prims.insert_mode, prims.normal.from_insert("?"), { desc = "isearch-backward" } },
+		{ prims.select_mode, prims.normal.from_select("?"), { desc = "isearch-backward" } },
+		{ prims.visual_mode, prims.normal.from_visual("?"), { desc = "isearch-backward" } },
 		{ prims.command_mode, "<C-t>", { desc = "isearch-backward" } },
 	},
 	["<C-s>"] = {
-		unpack(prims.bindings(prims.normal, {
-			prims.navigation_modes,
-			function(normal)
-				return normal("/")
-			end,
-			{ desc = "isearch-forward" },
-		})),
+		{ prims.normal_mode, prims.normal.from_normal("/"), { desc = "isearch-forward" } },
+		{ prims.insert_mode, prims.normal.from_insert("/"), { desc = "isearch-forward" } },
+		{ prims.select_mode, prims.normal.from_select("/"), { desc = "isearch-forward" } },
+		{ prims.visual_mode, prims.normal.from_visual("/"), { desc = "isearch-forward" } },
 		{ prims.command_mode, "<C-g>", { desc = "isearch-forward" } },
 	},
 	-- FIXME: Doesnt work
@@ -213,9 +193,7 @@ M.global_bindings = {
 	-- TODO: This is not accurate
 	["<C-v>"] = prims.bindings(prims.normal, {
 		prims.navigation_modes,
-		function()
-			return uarg.repeat_times("<PageUp>", { opposite = "<PageDown>" })
-		end,
+		uarg.repeat_times("<PageUp>", { opposite = "<PageDown>" }),
 		{ desc = "scroll-up-command", expr = true },
 	}),
 	-- TODO: Test
@@ -646,15 +624,13 @@ M.global_bindings = {
 	-- count-words-region unimplemented
 	["<M->>"] = prims.bindings(prims.normal, {
 		prims.navigation_modes,
-		function()
-			return uarg.pass_count(function(count)
-				count = count or 0
-				return string.format(
-					prims.ex_command("go %d"),
-					math.max(util.clamp(10 - count, 0, 10) / 10 * vim.fn.wordcount().bytes, 1)
-				)
-			end)
-		end,
+		uarg.pass_count(function(count)
+			count = count or 0
+			return string.format(
+				prims.ex_command("go %d"),
+				math.max(util.clamp(10 - count, 0, 10) / 10 * vim.fn.wordcount().bytes, 1)
+			)
+		end),
 		{ desc = "end-of-buffer", expr = true },
 	}),
 	-- mark-word unimplemented
@@ -737,9 +713,7 @@ M.global_bindings = {
 	-- TODO: Inaccurate
 	["<M-v>"] = prims.bindings(prims.normal, {
 		prims.navigation_modes,
-		function()
-			return uarg.repeat_times("<PageDown>", { opposite = "<PageUp>" })
-		end,
+		uarg.repeat_times("<PageDown>", { opposite = "<PageUp>" }),
 		{ desc = "scroll-down-command", expr = true },
 	}),
 	["<M-w>"] = {
@@ -796,15 +770,13 @@ M.global_bindings = {
 	-- Motion
 	["<M-<>"] = prims.bindings(prims.normal, {
 		prims.navigation_modes,
-		function()
-			return uarg.pass_count(function(count)
-				count = count or 0
-				return string.format(
-					prims.ex_command("go %d"),
-					math.max(util.clamp(count, 0, 10) / 10 * vim.fn.wordcount().bytes, 1)
-				)
-			end)
-		end,
+		uarg.pass_count(function(count)
+			count = count or 0
+			return string.format(
+				prims.ex_command("go %d"),
+				math.max(util.clamp(count, 0, 10) / 10 * vim.fn.wordcount().bytes, 1)
+			)
+		end),
 		{ desc = "go to buffer beggining", expr = true },
 	}),
 	["<M-g>g"] = {
