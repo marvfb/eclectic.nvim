@@ -13,7 +13,9 @@ local default_config = {
 		allow_rules = {
 			-- "Key regex"
 			-- { "Key regex", { modes }}
+			-- Warning about lua regexes
 			{ ".*", { "i", "c" } },
+			{ "<C%-x>.*", "t" },
 		},
 		-- Defines a set of rules for denied keybindings. Has a higher priority than allow_rules.
 		deny_rules = {
@@ -37,7 +39,7 @@ local function allowed_modes(key, proposed_modes, allow_rules, deny_rules)
 		local pattern = rule[1]
 		local modes = util.as_table(rule[2] or primitives.all_modes)
 		if string.match(key, pattern) then
-			possible_modes = vim.tbl_extend("keep", possible_modes, modes)
+			possible_modes = vim.list_extend(possible_modes, modes)
 		end
 	end
 	for _, rule in ipairs(deny_rules) do
@@ -45,10 +47,10 @@ local function allowed_modes(key, proposed_modes, allow_rules, deny_rules)
 		local pattern = rule[1]
 		local modes = util.as_table(rule[2] or primitives.all_modes)
 		if string.match(key, pattern) then
-			possible_modes = util.table_difference(possible_modes, modes)
+			possible_modes = util.list_difference(possible_modes, modes)
 		end
 	end
-	return util.table_intersection(proposed_modes, possible_modes)
+	return util.list_intersection(proposed_modes, possible_modes)
 end
 
 function M.apply_config(user_config)
