@@ -14,8 +14,7 @@ local default_config = {
 			-- "Key regex"
 			-- { "Key regex", { modes }}
 			-- Warning about lua regexes
-			{ ".*", { "i", "c" } },
-			{ "<C%-x>.*", "t" },
+			{ ".*", { "i", "c", "t" } },
 			{ "<M%-n>", "x" },
 			{ "<M%-p>", "x" },
 		},
