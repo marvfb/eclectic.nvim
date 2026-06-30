@@ -1,6 +1,5 @@
 local M = {}
 
--- TODO: Find better names
 
 M.all_modes = { "n", "i", "s", "x", "c", "t" }
 M.nonterminal_modes = { "n", "i", "s", "x", "c" }
@@ -28,7 +27,7 @@ function M.normal.from_mode(mode)
 		if mode == "n" or mode == "x" then
 			return str
 		elseif mode == "i" or mode == "s" then
-			return "<C-o>" .. str
+			return "<Cmd>normal " .. str .. "<CR>"
 		elseif mode == "c" then
 			return "<C-f>" .. str .. "<C-c><Cmd>redraw<CR>"
 		elseif mode == "t" then
@@ -50,7 +49,7 @@ function M.visual.from_mode(mode)
 			-- TODO: how do v V and C-v interact
 			return str .. "gv"
 		elseif mode == "i" or mode == "s" then
-			return "<C-o>" .. enter_how .. str
+			return "<Cmd>normal " .. enter_how .. str .. "<CR>"
 		elseif mode == "c" then
 			return "<C-f>" .. enter_how .. str .. "<C-c><Cmd>redraw<CR>"
 		elseif mode == "t" then

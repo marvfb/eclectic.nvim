@@ -17,13 +17,9 @@ local prompts = require("eclectic.emacs.prompts")
 
 -- Features to implement: Kmacros, xrefs (tags), abbrevs (there is a one-to-one thing in nvim)
 
--- TODO: Implement sexps, defuns, list as a text objects using treesitter.
--- Just search for all associated bindings in C-h b
--- https://github.com/neovim/neovim/commit/72d3a57f270fdca5e592dcf2e4b7c3b00549c05e
 
 -- TODO: Improve error handling. Use pcall, error, assert where needed.
 
--- Use : where possible
 
 -- TODO: Search for all mentions of marks, v, visual, etc. and consider transient mark mode and implicit region
 
@@ -190,10 +186,11 @@ M.global_bindings = {
 		end),
 		{ desc = "universal-argument" },
 	},
-	-- TODO: This is not accurate
 	["<C-v>"] = prims.bindings(prims.normal, {
 		prims.navigation_modes,
-		uarg.repeat_times("<PageUp>", { opposite = "<PageDown>" }),
+		function(normal)
+			return uarg.format_count(normal("%d<C-e>"), { opposite = normal("%d<C-y>"), default_cmd = normal("<C-d>") })
+		end,
 		{ desc = "scroll-up-command", expr = true },
 	}),
 	-- TODO: Test
@@ -452,12 +449,12 @@ M.global_bindings = {
 	["<C-x>1"] = { prims.all_modes, prims.ex_command("only"), { desc = "delete-other-windows" } },
 	["<C-x>2"] = {
 		prims.all_modes,
-		uarg.format_count(prims.ex_command("%dbelow split")),
+		uarg.format_count(prims.ex_command("%dsplit"), { default_cmd = prims.ex_command("split") }),
 		{ desc = "split-window-below", expr = true },
 	},
 	["<C-x>3"] = {
 		prims.all_modes,
-		uarg.format_count(prims.ex_command("%drightb vsplit")),
+		uarg.format_count(prims.ex_command("%dvsplit"), { default_cmd = prims.ex_command("vsplit") }),
 		{ desc = "split-window-right", expr = true },
 	},
 	-- comment-set-column unimplemented
@@ -713,7 +710,9 @@ M.global_bindings = {
 	-- TODO: Inaccurate
 	["<M-v>"] = prims.bindings(prims.normal, {
 		prims.navigation_modes,
-		uarg.repeat_times("<PageDown>", { opposite = "<PageUp>" }),
+		function(normal)
+			return uarg.format_count(normal("%d<C-y>"), { opposite = normal("%d<C-e>"), default_cmd = normal("<C-u>") })
+		end,
 		{ desc = "scroll-down-command", expr = true },
 	}),
 	["<M-w>"] = {
@@ -721,6 +720,13 @@ M.global_bindings = {
 		"y",
 		{ desc = "kill-ring-save" },
 	},
+	["<M-x>"] = prims.bindings(prims.interactive_ex_command, {
+		prims.all_modes,
+		function(iex)
+			return iex("")
+		end,
+		{ desc = "execute-extended-command" },
+	}),
 	-- TODO: M-y
 	-- TODO: Not quite correct. Emacs' version also goes to new lines
 	["<M-z>"] = {
@@ -878,7 +884,6 @@ M.global_bindings = {
 }
 
 -- For lua
-M.lisp_interaction_mode_bindings = {}
 
 -- array-mode
 -- completion-mode
@@ -887,6 +892,7 @@ M.lisp_interaction_mode_bindings = {}
 -- abbrev-mode
 -- artist-mode
 -- cua-mode
+
 
 M.tab_bar_mode = {
 	["<C-S-Tab>"] = { prims.all_modes, prims.ex_command("tabprevious"), { desc = "tab-previous" } },

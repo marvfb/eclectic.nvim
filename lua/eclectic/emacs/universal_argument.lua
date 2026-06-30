@@ -43,10 +43,14 @@ function M.format_count(formatstr, opts)
 	return function()
 		local c = M.get_count()
 		if c == nil then
-			if opts.default and type(opts.default) == "number" then
-				c = opts.default
-			elseif opts.default and type(opts.default) == "function" then
-				c = opts.default()
+			if opts.default then
+				if type(opts.default) == "number" then
+					c = opts.default
+				elseif type(opts.default) == "function" then
+					c = opts.default()
+				end
+			elseif opts.default_cmd then
+				return opts.default_cmd
 			else
 				c = 1
 			end
@@ -77,10 +81,14 @@ function M.repeat_times(cmd, opts)
 	return function()
 		local c = M.get_count()
 		if c == nil then
-			if opts.default and type(opts.default) == "number" then
-				c = opts.default
-			elseif opts.default and type(opts.default) == "function" then
-				c = opts.default()
+			if opts.default then
+				if type(opts.default) == "number" then
+					c = opts.default
+				elseif type(opts.default) == "function" then
+					c = opts.default()
+				end
+			elseif opts.default_cmd then
+				return opts.default_cmd
 			else
 				c = 1
 			end
