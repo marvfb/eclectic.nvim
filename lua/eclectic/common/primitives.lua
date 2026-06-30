@@ -1,5 +1,6 @@
 local M = {}
 
+-- TODO: Refactor away metatable. Use for loop instead since variants are known beforehand
 
 M.all_modes = { "n", "i", "s", "x", "c", "t" }
 M.nonterminal_modes = { "n", "i", "s", "x", "c" }
