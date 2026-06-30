@@ -17,9 +17,11 @@ local prompts = require("eclectic.emacs.prompts")
 
 -- Features to implement: Kmacros, xrefs (tags), abbrevs (there is a one-to-one thing in nvim)
 
+-- TODO: Implement defuns, list as a text objects using treesitter. Not satisfied with current state
 
 -- TODO: Improve error handling. Use pcall, error, assert where needed.
 
+-- Use ex commands where possible
 
 -- TODO: Search for all mentions of marks, v, visual, etc. and consider transient mark mode and implicit region
 
@@ -327,6 +329,13 @@ M.global_bindings = {
 		end,
 		{ desc = "undo-redo", expr = true },
 	}),
+	["<C-M-Bs>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return uarg.repeat_times(visual("[nd"), { opposite = visual("]nd") })
+		end,
+		{ desc = "backward-kill-sexp" },
+	}),
 	-- TODO: test
 	["<C-S-Bs>"] = {
 		prims.insert_mode,
@@ -371,6 +380,13 @@ M.global_bindings = {
 			return iex("e " .. get_cwd)
 		end,
 		{ desc = "list-directory" },
+	}),
+	["<C-x><C-e>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return visual("[nlua<CR>")
+		end,
+		{ desc = "eval-last-sexp" },
 	}),
 	["<C-x><C-f>"] = prims.bindings(prims.interactive_ex_command, {
 		prims.all_modes,
@@ -577,11 +593,55 @@ M.global_bindings = {
 	}),
 
 	-- default-indent-new-line unimplemented
+	-- Probably not accurate
+	["<C-M-@>"] = prims.bindings(prims.interactive_visual, {
+		prims.navigation_modes,
+		function(iv)
+			return uarg.format_count(iv("%d]n"), { opposite = iv("%d[n") })
+		end,
+		{ desc = "mark-sexp" },
+	}),
+	["<C-M-b>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return uarg.format_count(visual("%d[n"), { opposite = visual("%d]n") })
+		end,
+		{ desc = "backward-sexp" },
+	}),
+	["<C-M-d>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return uarg.format_count(visual("%din"), { opposite = visual("%dan") })
+		end,
+		{ desc = "down-list" },
+	}),
+	["<C-M-f>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return uarg.format_count(visual("%d]n"), { opposite = visual("%d[n") })
+		end,
+		{ desc = "forward-sexp" },
+	}),
+	["<C-M-k>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return uarg.format_count(visual("%d]nd"), { opposite = visual("%d[nd") })
+		end,
+		{ desc = "kill-sexp" },
+	}),
 	["<C-M-o>"] = {
 		prims.insert_mode,
 		custom_functionality.move_rest_of_line_down,
 		{ desc = "split-line" },
 	},
+	-- transpose sexps not implemented
+	["<C-M-u>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return uarg.format_count(visual("%dan"), { opposite = visual("%din") })
+		end,
+		{ desc = "backward-up-list" },
+	}),
 	["<C-M-v>"] = prims.bindings(prims.normal, {
 		prims.all_modes,
 		function(normal)
@@ -884,6 +944,28 @@ M.global_bindings = {
 }
 
 -- For lua
+-- FIXME: Not ready
+M.lisp_interaction_mode_bindings = {
+	["<C-j>"] = prims.bindings(prims.visual, {
+		prims.navigation_modes,
+		function(visual)
+			return visual("an:lua<CR>")
+		end,
+		{ desc = "eval-print-last-sexp" },
+	}),
+	["<C-c><C-e>"] = {
+		{
+			prims.insert_mode,
+			prims.ex_command("1,$lua"),
+			{ desc = "elisp-eval-region-or-buffer" },
+		},
+		{
+			prims.visual_mode,
+			prims.ex_command("lua"),
+			{ desc = "elisp-eval-region-or-buffer" },
+		},
+	},
+}
 
 -- array-mode
 -- completion-mode
@@ -893,6 +975,9 @@ M.global_bindings = {
 -- artist-mode
 -- cua-mode
 
+-- shell-mode
+-- ansi-term-mode
+-- eshell-mode
 
 M.tab_bar_mode = {
 	["<C-S-Tab>"] = { prims.all_modes, prims.ex_command("tabprevious"), { desc = "tab-previous" } },
@@ -958,6 +1043,7 @@ local equivalence_classes = {
 	{ "<C-z>", "<C-x><C-z>" },
 	{ "<C-x>'", "<C-x>a'", "<C-x>ae" },
 	{ "<C-x>(", "<C-x><C-k><C-s>", "<C-x><C-k>s" },
+	{ "<C-M-@>", "<C-M-Space>" },
 }
 
 -- TODO: Also do this for other lists
