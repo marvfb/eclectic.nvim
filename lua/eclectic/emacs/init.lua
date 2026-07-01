@@ -832,6 +832,76 @@ M.global_bindings = {
 	},
 
 	-- XXX: Ended off at isearch-forward-symbol-at-point
+	["<C-x>t<C-f>"] = prims.bindings(prims.interactive_ex_command, {
+		prims.all_modes,
+		function(iex)
+			return iex("tabe " .. get_cwd)
+		end,
+		{ desc = "find-file-other-tab" },
+	}),
+	-- find-file-read-only-other-tab unimplemented (seriously, who uses this)
+	["<C-x>t0"] = {
+		prims.all_modes,
+		uarg.format_count(prims.ex_command("tabc %d"), { default_cmd = prims.ex_command("tabc") }),
+		{ desc = "tab-close", expr = true },
+	},
+	["<C-x>t1"] = {
+		prims.all_modes,
+		prims.ex_command("tabonly"),
+		{ desc = "tab-close-other" },
+	},
+	["<C-x>t2"] = {
+		prims.all_modes,
+		prims.ex_command("tabnew"),
+		{ desc = "tab-new" },
+	},
+	-- tab groups unimplemented
+	["<C-x>tM"] = {
+		prims.all_modes,
+		uarg.format_count(prims.ex_command("tabmove %d")),
+		{ desc = "tab-move-to", expr = true },
+	},
+	["<C-x>tN"] = {
+		prims.all_modes,
+		uarg.format_count(prims.ex_command("tabnew") .. prims.ex_command("tabmove %d")),
+		{ desc = "tab-new-to", expr = true },
+	},
+	["<C-x>tO"] = prims.bindings(prims.normal, {
+		prims.all_modes,
+		-- Done this way because it needs to be circular, which tabprev does not achieve
+		function(normal)
+			return uarg.format_count(normal("%dgT"), { opposite = normal("%dgt") })
+		end,
+		{ desc = "tab-previous", expr = true },
+	}),
+	["<C-x>tb"] = prims.bindings(prims.interactive_ex_command, {
+		prims.all_modes,
+		function(iex)
+			return uarg.format_count(iex("tab b"))
+		end,
+		{ desc = "switch-to-buffer-other-tab", expr = true },
+	}),
+	["<C-x>td"] = prims.bindings(prims.interactive_ex_command, {
+		prims.all_modes,
+		function(iex)
+			return uarg.format_count(iex("e " .. get_cwd))
+		end,
+		{ desc = "dired-other-tab", expr = true },
+	}),
+	-- tab-duplicate hard to implement (i think)
+	["<C-x>to"] = prims.bindings(prims.normal, {
+		prims.all_modes,
+		-- Done this way because it needs to be circular, which tabnext does not achieve
+		function(normal)
+			-- FIXME: currently affected by a bug
+			return uarg.format_count(normal("%dgt"), { opposite = normal("%dgT") })
+		end,
+		{ desc = "tab-next", expr = true },
+	}),
+	-- tab-rename currently hard in nvim
+	-- not doing other-tab-prefix
+	-- tab-undo is also hard
+
 
 	-- Motion
 	["<M-<>"] = prims.bindings(prims.normal, {
@@ -1044,6 +1114,8 @@ local equivalence_classes = {
 	{ "<C-x>'", "<C-x>a'", "<C-x>ae" },
 	{ "<C-x>(", "<C-x><C-k><C-s>", "<C-x><C-k>s" },
 	{ "<C-M-@>", "<C-M-Space>" },
+	{ "<C-x>t<C-f>", "<C-x>tf" },
+	{ "<C-x>tM", "<C-x>tm" },
 }
 
 -- TODO: Also do this for other lists
