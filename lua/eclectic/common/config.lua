@@ -23,7 +23,8 @@ local default_config = {
 			-- "Key regex"
 			-- { "Key regex", { modes } }
 			"<Tab>",
-			"<C-g>",
+			"<C%-g>",
+			"<C%-c>.*",
 		},
 		key_translations = {
 			-- ["Key"] = "Other key"

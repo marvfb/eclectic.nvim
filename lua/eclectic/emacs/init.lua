@@ -11,11 +11,11 @@ local prompts = require("eclectic.emacs.prompts")
 
 -- Dont wanna do: Help, Emacs Lisp interpreter, support for frames and pages,
 -- recursive edit, crazy emacs indentation (including fill columns and fill prefix)
--- email, language modes
+-- email, language modes, gui things (mouse, text scale)
 
 -- F keys, delete keys, arrow keys were not considered
 
--- Features to implement: Kmacros, xrefs (tags), abbrevs (there is a one-to-one thing in nvim)
+-- Features to implement: Kmacros, xrefs (tags), abbrevs (there is a one-to-one thing in nvim), registers
 
 -- TODO: Implement defuns, list as a text objects using treesitter. Not satisfied with current state
 
@@ -831,7 +831,74 @@ M.global_bindings = {
 		{ desc = "query-replace-regexp" },
 	},
 
-	-- XXX: Ended off at isearch-forward-symbol-at-point
+	["<M-s>."] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
+		function(normal)
+			return uarg.repeat_times(normal("*"), { opposite = normal("#") })
+		end,
+		{ desc = "isearch-forward-symbol-at-point", expr = true },
+	}),
+	["<M-s>o"] = prims.bindings(prims.interactive_ex_command, {
+		prims.navigation_modes,
+		function(iex)
+			return iex("g/")
+		end,
+		{ desc = "occur" },
+	}),
+
+	["<M-g><Tab>"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
+		function(normal)
+			return uarg.format_count(normal("%d|"), { default = prompts.prompt_count })
+		end,
+		{ desc = "move-to-column", expr = true },
+	}),
+	["<M-g>c"] = {
+		prims.navigation_modes,
+		uarg.format_count(prims.ex_command("go %d"), { default = prompts.prompt_count }),
+		{ desc = "goto-char", expr = true },
+	},
+	["<M-g>g"] = {
+		prims.navigation_modes,
+		uarg.format_count(prims.ex_command("%d"), { default = prompts.prompt_count }),
+		{ desc = "goto-line", expr = true },
+	},
+	-- idk what imenu is
+	["<M-g>n"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
+		function(normal)
+			return uarg.format_count(normal("%d]q"), { opposite = normal("%d[q") })
+		end,
+		{ desc = "next-error", expr = true },
+	}),
+	["<M-g>p"] = prims.bindings(prims.normal, {
+		prims.navigation_modes,
+		function(normal)
+			return uarg.format_count(normal("%d[q"), { opposite = normal("%d]q") })
+		end,
+		{ desc = "previous-error", expr = true },
+	}),
+
+	["<M-Esc>:"] = prims.bindings(prims.interactive_ex_command, {
+		prims.all_modes,
+		function(iex)
+			return iex("lua ")
+		end,
+		{ desc = "eval-expression" },
+	}),
+
+	-- info-other-window, help-find-source unimplemented
+
+	-- encodings unimplemented
+
+	-- repeat-complex-command unimplemented
+
+	-- TODO: implement other-window functionality. this is very hard currently because of how bindings works
+
+	-- two-column unimplemented
+
+	-- insert-char unimplemented
+
 	["<C-x>t<C-f>"] = prims.bindings(prims.interactive_ex_command, {
 		prims.all_modes,
 		function(iex)
@@ -902,6 +969,7 @@ M.global_bindings = {
 	-- not doing other-tab-prefix
 	-- tab-undo is also hard
 
+	-- XXX: ended at fit-window-to-buffer
 
 	-- Motion
 	["<M-<>"] = prims.bindings(prims.normal, {
@@ -915,16 +983,6 @@ M.global_bindings = {
 		end),
 		{ desc = "go to buffer beggining", expr = true },
 	}),
-	["<M-g>g"] = {
-		prims.navigation_modes,
-		uarg.format_count(prims.ex_command("%d"), { default = prompts.prompt_count }),
-		{ desc = "goto line", expr = true },
-	},
-	["<M-g>c"] = {
-		prims.navigation_modes,
-		uarg.format_count(prims.ex_command("go %d"), { default = prompts.prompt_count }),
-		{ desc = "goto char", expr = true },
-	},
 
 	-- Killing and Deleting
 	["<Bs>"] = {
@@ -1094,7 +1152,7 @@ M.move_text = {
 local equivalence_classes = {
 	{ "<C-@>", "<C-Space>" },
 	{ "<C-r>", "<C-M-r>" },
-	{ "<C-s>", "<C-M-s>" },
+	{ "<C-s>", "<C-M-s>", "<M-s>_", "<M-s>w" },
 	{ "<C-_>", "<C-/>", "<C-x>u" },
 	{ "<C-->", "<M-->", "<C-M-->" },
 	{ "<C-0>", "<M-0>", "<C-M-0>" },
@@ -1114,6 +1172,9 @@ local equivalence_classes = {
 	{ "<C-x>'", "<C-x>a'", "<C-x>ae" },
 	{ "<C-x>(", "<C-x><C-k><C-s>", "<C-x><C-k>s" },
 	{ "<C-M-@>", "<C-M-Space>" },
+	{ "<C-x>`", "<M-g>n", "<M-g><M-n>" },
+	{ "<M-g>p", "<M-g><M-p>" },
+	{ "<M-:>", "<M-Esc>:" },
 	{ "<C-x>t<C-f>", "<C-x>tf" },
 	{ "<C-x>tM", "<C-x>tm" },
 }
