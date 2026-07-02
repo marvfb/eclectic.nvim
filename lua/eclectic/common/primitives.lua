@@ -50,7 +50,7 @@ function M.visual.from_mode(mode)
 			-- TODO: how do v V and C-v interact
 			return str .. "gv"
 		elseif mode == "i" or mode == "s" then
-			return "<Cmd>normal " .. enter_how .. str .. "<CR>"
+			return "<C-o>" .. enter_how .. str
 		elseif mode == "c" then
 			return "<C-f>" .. enter_how .. str .. "<C-c><Cmd>redraw<CR>"
 		elseif mode == "t" then
