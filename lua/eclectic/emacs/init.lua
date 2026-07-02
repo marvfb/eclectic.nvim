@@ -604,21 +604,21 @@ M.global_bindings = {
 	["<C-M-b>"] = prims.bindings(prims.visual, {
 		prims.navigation_modes,
 		function(visual)
-			return uarg.format_count(visual("%d[n"), { opposite = visual("%d]n") })
+			return uarg.format_count(visual("%d[nv"), { opposite = visual("%d]nv") })
 		end,
 		{ desc = "backward-sexp" },
 	}),
 	["<C-M-d>"] = prims.bindings(prims.visual, {
 		prims.navigation_modes,
 		function(visual)
-			return uarg.format_count(visual("%din"), { opposite = visual("%dan") })
+			return uarg.format_count(visual("%dinv"), { opposite = visual("%danv") })
 		end,
 		{ desc = "down-list" },
 	}),
 	["<C-M-f>"] = prims.bindings(prims.visual, {
 		prims.navigation_modes,
 		function(visual)
-			return uarg.format_count(visual("%d]n"), { opposite = visual("%d[n") })
+			return uarg.format_count(visual("%d]nv"), { opposite = visual("%d[nv") })
 		end,
 		{ desc = "forward-sexp" },
 	}),
@@ -638,7 +638,7 @@ M.global_bindings = {
 	["<C-M-u>"] = prims.bindings(prims.visual, {
 		prims.navigation_modes,
 		function(visual)
-			return uarg.format_count(visual("%dan"), { opposite = visual("%din") })
+			return uarg.format_count(visual("%danv"), { opposite = visual("%dinv") })
 		end,
 		{ desc = "backward-up-list" },
 	}),
