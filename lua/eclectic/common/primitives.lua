@@ -38,10 +38,9 @@ function M.actions.visual.from_mode(mode)
 			return "<Cmd>normal " .. enter_how .. str .. "<CR>"
 		elseif mode == "x" then
 			-- TODO: how do v V and C-v interact
-			-- Also this is very tricky to get right (with gv)
-			return "<Cmd>normal " .. str .. "<CR>gv"
+			return str .. "gv"
 		elseif mode == "i" or mode == "s" then
-			return "<C-o>" .. enter_how .. str
+			return "<Cmd>normal " .. enter_how .. str .. "<CR>"
 		elseif mode == "c" then
 			return "<C-f>" .. enter_how .. str .. "<C-c><Cmd>redraw<CR>"
 		elseif mode == "t" then
@@ -141,9 +140,10 @@ function M.bindings(binding)
 	for _, mode in ipairs(modes) do
 		local actions = {}
 		for n, a in pairs(M.actions) do
-			actions[n] = a.from_mode(mode)
+			if type(a) == "table" then
+				actions[n] = a.from_mode(mode)
+			end
 		end
-		assert(kind["from_" .. mode], "Unkown kind")
 		table.insert(bindings, { mode, generate_cmd(actions), opts })
 	end
 

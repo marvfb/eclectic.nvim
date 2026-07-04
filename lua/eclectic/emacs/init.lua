@@ -608,24 +608,24 @@ M.global_bindings = {
 	["<C-M-b>"] = prims.actions.visual.bindings({
 		prims.modes.navigation_modes,
 		function(visual)
-			return uarg.format_count(visual("%d[nv"), { opposite = visual("%d]nv") })
+			return uarg.format_count(visual("%d[nov"), { opposite = visual("%d]nov") })
 		end,
 		{ desc = "backward-sexp", expr = true },
 	}),
 	["<C-M-d>"] = prims.actions.visual.bindings({
 		prims.modes.navigation_modes,
 		function(visual)
-			return uarg.format_count(visual("%dinv"), { opposite = visual("%danv") })
+			return uarg.format_count(visual("in%dinv`<"), { opposite = visual("an%danv`<") })
 		end,
-		{ desc = "down-list" },
+		{ desc = "down-list", expr = true },
 	}),
-	["<C-M-f>"] = {
+	["<C-M-f>"] = prims.actions.visual.bindings({
 		prims.modes.navigation_modes,
-		uarg.repeat_times(function()
-			vim.api.nvim_feedkeys(util.termcode_escape("]n"), "x", false)
-		end),
+		function(visual)
+			return uarg.format_count(visual("%d]nov"), { opposite = visual("%d[nov") })
+		end,
 		{ desc = "forward-sexp", expr = true },
-	},
+	}),
 	["<C-M-k>"] = prims.actions.visual.bindings({
 		prims.modes.navigation_modes,
 		function(visual)
@@ -639,12 +639,15 @@ M.global_bindings = {
 		{ desc = "split-line" },
 	},
 	-- transpose sexps not implemented
-	["<C-M-u>"] = prims.actions.visual.bindings({
+	["<C-M-u>"] = prims.bindings({
 		prims.modes.navigation_modes,
-		function(visual)
-			return uarg.format_count(visual("%danv"), { opposite = visual("%dinv") })
+		function(actions)
+			return uarg.format_count(
+				actions.visual("an%danv") .. actions.normal("`<"),
+				{ opposite = actions.visual("in%dinv`<") .. actions.normal("`<") }
+			)
 		end,
-		{ desc = "backward-up-list" },
+		{ desc = "backward-up-list", expr = true },
 	}),
 	["<C-M-v>"] = prims.actions.normal.bindings({
 		prims.modes.all_modes,
