@@ -14,9 +14,9 @@ local default_config = {
 			-- "Key regex"
 			-- { "Key regex", { modes }}
 			-- Warning about lua regexes
-			{ ".*", { "i", "c", "t" } },
-			{ "<M%-n>", "x" },
-			{ "<M%-p>", "x" },
+			{ ".*", { "i", "s", "c" } },
+			{ "<M%-.*", { "x", "n", "t" } },
+			{ "<C%-x>.*", { "x", "n", "t" } },
 		},
 		-- Defines a set of rules for denied keybindings. Has a higher priority than allow_rules.
 		deny_rules = {
