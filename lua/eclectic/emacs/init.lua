@@ -150,17 +150,49 @@ M.global_bindings = {
 	},
 	-- C-q exists already
 	["<C-r>"] = {
-		{ prims.modes.normal_mode, prims.actions.normal.from_normal("?"), { desc = "isearch-backward" } },
-		{ prims.modes.insert_mode, prims.actions.normal.from_insert("?"), { desc = "isearch-backward" } },
-		{ prims.modes.select_mode, prims.actions.normal.from_select("?"), { desc = "isearch-backward" } },
-		{ prims.modes.visual_mode, prims.actions.normal.from_visual("?"), { desc = "isearch-backward" } },
+		{
+			prims.modes.normal_mode,
+			prims.actions.interactive_ex_command.from_normal("", "?"),
+			{ desc = "isearch-backward" },
+		},
+		{
+			prims.modes.insert_mode,
+			prims.actions.interactive_ex_command.from_insert("", "?"),
+			{ desc = "isearch-backward" },
+		},
+		{
+			prims.modes.select_mode,
+			prims.actions.interactive_ex_command.from_select("", "?"),
+			{ desc = "isearch-backward" },
+		},
+		{
+			prims.modes.visual_mode,
+			prims.actions.interactive_ex_command.from_visual("", "?"),
+			{ desc = "isearch-backward" },
+		},
 		{ prims.modes.command_mode, "<C-t>", { desc = "isearch-backward" } },
 	},
 	["<C-s>"] = {
-		{ prims.modes.normal_mode, prims.actions.normal.from_normal("/"), { desc = "isearch-forward" } },
-		{ prims.modes.insert_mode, prims.actions.normal.from_insert("/"), { desc = "isearch-forward" } },
-		{ prims.modes.select_mode, prims.actions.normal.from_select("/"), { desc = "isearch-forward" } },
-		{ prims.modes.visual_mode, prims.actions.normal.from_visual("/"), { desc = "isearch-forward" } },
+		{
+			prims.modes.normal_mode,
+			prims.actions.interactive_ex_command.from_normal("", "/"),
+			{ desc = "isearch-forward" },
+		},
+		{
+			prims.modes.insert_mode,
+			prims.actions.interactive_ex_command.from_insert("", "/"),
+			{ desc = "isearch-forward" },
+		},
+		{
+			prims.modes.select_mode,
+			prims.actions.interactive_ex_command.from_select("", "/"),
+			{ desc = "isearch-forward" },
+		},
+		{
+			prims.modes.visual_mode,
+			prims.actions.interactive_ex_command.from_visual("", "/"),
+			{ desc = "isearch-forward" },
+		},
 		{ prims.modes.command_mode, "<C-g>", { desc = "isearch-forward" } },
 	},
 	-- FIXME: Doesnt work
@@ -543,11 +575,13 @@ M.global_bindings = {
 		end,
 		{ desc = "dired" },
 	}),
-	["<C-x>h"] = {
-		prims.modes.insert_mode,
-		uarg.sequence(prims.actions.normal.from_insert("G$"), prims.actions.interactive_visual.from_insert("gg0")),
+	["<C-x>h"] = prims.bindings({
+		prims.modes.navigation_modes,
+		function(actions)
+			return uarg.sequence(actions.normal("G$"), actions.interactive_visual("gg0"))
+		end,
 		{ desc = "mark-whole-buffer", expr = true },
-	},
+	}),
 	["<C-x>i"] = prims.actions.interactive_ex_command.bindings({
 		prims.modes.all_modes,
 		function(iex)
@@ -672,7 +706,7 @@ M.global_bindings = {
 	["<M-%>"] = prims.actions.interactive_ex_command.bindings({
 		prims.modes.navigation_modes,
 		function(iex)
-			return iex("%s///c", "<Left><Left><Left>")
+			return iex("%s///c<Left><Left><Left>")
 		end,
 		{ desc = "query-replace" },
 	}),
@@ -834,7 +868,7 @@ M.global_bindings = {
 	-- recenter-other-window, scroll-other-window-down unimplemented
 	["<C-M-%>"] = {
 		prims.modes.navigation_modes,
-		prims.actions.interactive_ex_command.from_insert("%s///c", "<Left><Left><Left>"),
+		prims.actions.interactive_ex_command.from_insert("%s///c<Left><Left><Left>"),
 		{ desc = "query-replace-regexp" },
 	},
 

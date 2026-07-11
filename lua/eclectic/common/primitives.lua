@@ -57,16 +57,16 @@ end
 
 M.actions.interactive_ex_command = {}
 function M.actions.interactive_ex_command.from_mode(mode)
-	return function(str, cursor_adjustment)
-		cursor_adjustment = cursor_adjustment or ""
+	return function(str, enter_how)
+		enter_how = enter_how or ":"
 		if mode == "n" or mode == "x" then
-			return ":" .. str .. cursor_adjustment
+			return enter_how .. str
 		elseif mode == "i" or mode == "s" then
-			return "<Esc>:" .. str .. cursor_adjustment
+			return "<Esc>" .. enter_how .. str
 		elseif mode == "c" then
-			return str .. cursor_adjustment
+			return str
 		elseif mode == "t" then
-			return "<C-\\><C-n>:" .. str .. cursor_adjustment
+			return "<C-\\><C-n>" .. enter_how .. str
 		end
 		error("unexpected mode: " .. mode)
 		return nil

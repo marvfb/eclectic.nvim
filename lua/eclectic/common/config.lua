@@ -17,6 +17,8 @@ local default_config = {
 			{ ".*", { "i", "s", "c" } },
 			{ "<M%-.*", { "x", "n", "t" } },
 			{ "<C%-x>.*", { "x", "n", "t" } },
+			{ "<C%-Tab>", { "x", "n", "t" } },
+			{ "<C%-S%-Tab>", { "x", "n", "t" } },
 		},
 		-- Defines a set of rules for denied keybindings. Has a higher priority than allow_rules.
 		deny_rules = {
