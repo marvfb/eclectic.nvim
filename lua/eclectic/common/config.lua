@@ -1,7 +1,7 @@
 local M = {}
 
 local util = require("eclectic.common.util")
-local primitives = require("eclectic.common.primitives")
+local prims = require("eclectic.common.primitives")
 
 local editors = {
 	emacs = require("eclectic.emacs"),
@@ -43,7 +43,7 @@ local function allowed_modes(key, proposed_modes, allow_rules, deny_rules)
 	for _, rule in ipairs(allow_rules) do
 		rule = util.as_table(rule)
 		local pattern = rule[1]
-		local modes = util.as_table(rule[2] or primitives.all_modes)
+		local modes = util.as_table(rule[2] or prims.modes.all_modes)
 		if string.match(key, pattern) then
 			possible_modes = vim.list_extend(possible_modes, modes)
 		end
@@ -51,7 +51,7 @@ local function allowed_modes(key, proposed_modes, allow_rules, deny_rules)
 	for _, rule in ipairs(deny_rules) do
 		rule = util.as_table(rule)
 		local pattern = rule[1]
-		local modes = util.as_table(rule[2] or primitives.all_modes)
+		local modes = util.as_table(rule[2] or prims.modes.all_modes)
 		if string.match(key, pattern) then
 			possible_modes = util.list_difference(possible_modes, modes)
 		end
