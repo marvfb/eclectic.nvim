@@ -1,2 +1,5 @@
-C-k jumps back
--> Make things more solid with lua api functions
+C-y still broken
+C-k jumps back (maybe add oneshot semantics)
+
+M-n and M-p broken (it should reselect)
+

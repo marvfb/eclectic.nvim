@@ -1,5 +1,7 @@
 local M = {}
 
+-- TODO: More debugging needed
+
 function M.clamp(num, min, max)
 	return math.max(min, math.min(max, num))
 end

@@ -21,11 +21,13 @@ local prompts = require("eclectic.emacs.prompts")
 
 -- TODO: Improve error handling. Use pcall, error, assert where needed.
 
--- Use ex commands where possible
+-- maybe introduce binding development kit for users
 
 -- TODO: Search for all mentions of marks, v, visual, etc. and consider transient mark mode and implicit region
 
 -- Use ex long form commands where possible
+
+-- Add luadoc types. action=void->string|void->void|string
 
 local function select_other_window(normal, opts)
 	opts = opts or {}
@@ -34,7 +36,7 @@ local function select_other_window(normal, opts)
 		local num_windows = #vim.api.nvim_tabpage_list_wins(0)
 		local res = ""
 		if num_windows < 2 then
-			res = res .. prims.actions.ex_command("new")
+			res = res .. prims.actions.ex_command.inject("new")
 		end
 		return res .. normal("<C-w>" .. util.ternary(reverse, "p", "w"))
 	end
@@ -265,7 +267,11 @@ M.global_bindings = {
 			{ desc = "yank", expr = true },
 		},
 	},
-	["<C-z>"] = { prims.modes.nonterminal_modes, prims.actions.ex_command("suspend"), { desc = "suspend-frame" } },
+	["<C-z>"] = {
+		prims.modes.nonterminal_modes,
+		prims.actions.ex_command.inject("suspend"),
+		{ desc = "suspend-frame" },
+	},
 	-- C-\ unimplemented
 	-- C-] unimplemented
 	["<C-_>"] = prims.actions.normal.bindings({
@@ -404,10 +410,10 @@ M.global_bindings = {
 		end,
 		{ desc = "pop-global-mark" },
 	},
-	["<C-x><C-b>"] = { prims.modes.all_modes, prims.actions.ex_command("ls"), { desc = "list-buffers" } },
+	["<C-x><C-b>"] = { prims.modes.all_modes, prims.actions.ex_command.inject("ls"), { desc = "list-buffers" } },
 	["<C-x><C-c>"] = {
 		prims.modes.all_modes,
-		uarg.prefix_argument(prims.actions.ex_command("qa"), prims.actions.ex_command("wqa")),
+		uarg.prefix_argument(prims.actions.ex_command.inject("qa"), prims.actions.ex_command.inject("wqa")),
 		{ desc = "save-buffers-kill-terminal", expr = true },
 	},
 	["<C-x><C-d>"] = prims.actions.interactive_ex_command.bindings({
@@ -439,7 +445,7 @@ M.global_bindings = {
 	},
 	["<C-x><C-j>"] = {
 		prims.modes.all_modes,
-		prims.actions.ex_command("e ."),
+		prims.actions.ex_command.inject("e ."),
 		{ desc = "dired-jump" },
 	},
 	["<C-x><C-l>"] = { prims.modes.visual_mode, "u", { desc = "downcase-region" } },
@@ -452,17 +458,17 @@ M.global_bindings = {
 	},
 	["<C-x><C-q>"] = {
 		prims.modes.all_modes,
-		prims.actions.ex_command("setlocal modifiable!"),
+		prims.actions.ex_command.inject("setlocal modifiable!"),
 		{ desc = "read-only-mode" },
 	},
 	-- TODO: C-x C-r
-	["<C-x><C-s>"] = { prims.modes.all_modes, prims.actions.ex_command("write"), { desc = "save-buffer" } },
+	["<C-x><C-s>"] = { prims.modes.all_modes, prims.actions.ex_command.inject("write"), { desc = "save-buffer" } },
 	-- TODO: implement transpose-lines
 	["<C-x><C-u>"] = { prims.modes.visual_mode, "U", { desc = "uppercase region" } },
 	["<C-x><C-v>"] = prims.actions.interactive_ex_command.bindings({
 		prims.modes.all_modes,
 		function(iex)
-			return prims.actions.ex_command("bw") .. iex("e " .. get_cwd)
+			return prims.actions.ex_command.inject("bw") .. iex("e " .. get_cwd)
 		end,
 		{ desc = "find-alternate-file" },
 	}),
@@ -497,16 +503,22 @@ M.global_bindings = {
 	-- balance-windows unimplemented
 	-- shrink-window-if-larger-than-buffer unimplemented
 	-- TODO: set-fill-prefix
-	["<C-x>0"] = { prims.modes.all_modes, prims.actions.ex_command("quit"), { desc = "delete-window" } },
-	["<C-x>1"] = { prims.modes.all_modes, prims.actions.ex_command("only"), { desc = "delete-other-windows" } },
+	["<C-x>0"] = { prims.modes.all_modes, prims.actions.ex_command.inject("quit"), { desc = "delete-window" } },
+	["<C-x>1"] = { prims.modes.all_modes, prims.actions.ex_command.inject("only"), { desc = "delete-other-windows" } },
 	["<C-x>2"] = {
 		prims.modes.all_modes,
-		uarg.format_count(prims.actions.ex_command("%dsplit"), { default_cmd = prims.actions.ex_command("split") }),
+		uarg.format_count(
+			prims.actions.ex_command.inject("%dsplit"),
+			{ default_cmd = prims.actions.ex_command.inject("split") }
+		),
 		{ desc = "split-window-below", expr = true },
 	},
 	["<C-x>3"] = {
 		prims.modes.all_modes,
-		uarg.format_count(prims.actions.ex_command("%dvsplit"), { default_cmd = prims.actions.ex_command("vsplit") }),
+		uarg.format_count(
+			prims.actions.ex_command.inject("%dvsplit"),
+			{ default_cmd = prims.actions.ex_command.inject("vsplit") }
+		),
 		{ desc = "split-window-right", expr = true },
 	},
 	-- comment-set-column unimplemented
@@ -589,7 +601,7 @@ M.global_bindings = {
 		end,
 		{ desc = "insert-file" },
 	}),
-	["<C-x>k"] = { prims.modes.all_modes, prims.actions.ex_command("bw"), { desc = "kill-buffer" } },
+	["<C-x>k"] = { prims.modes.all_modes, prims.actions.ex_command.inject("bw"), { desc = "kill-buffer" } },
 	-- count-lines-page unimplemented
 	["<C-x>o"] = prims.actions.normal.bindings({
 		prims.modes.all_modes,
@@ -598,7 +610,7 @@ M.global_bindings = {
 		end,
 		{ desc = "other-window", expr = true },
 	}),
-	["<C-x>s"] = { prims.modes.all_modes, prims.actions.ex_command("wa"), { desc = "save-some-buffers" } },
+	["<C-x>s"] = { prims.modes.all_modes, prims.actions.ex_command.inject("wa"), { desc = "save-some-buffers" } },
 	["<C-x>z"] = prims.actions.normal.bindings({
 		prims.modes.editing_modes,
 		function(normal)
@@ -725,7 +737,7 @@ M.global_bindings = {
 		uarg.pass_count(function(count)
 			count = count or 0
 			return string.format(
-				prims.actions.ex_command("go %d"),
+				prims.actions.ex_command.inject("go %d"),
 				math.max(util.clamp(10 - count, 0, 10) / 10 * vim.fn.wordcount().bytes, 1)
 			)
 		end),
@@ -896,12 +908,12 @@ M.global_bindings = {
 	}),
 	["<M-g>c"] = {
 		prims.modes.navigation_modes,
-		uarg.format_count(prims.actions.ex_command("go %d"), { default = prompts.prompt_count }),
+		uarg.format_count(prims.actions.ex_command.inject("go %d"), { default = prompts.prompt_count }),
 		{ desc = "goto-char", expr = true },
 	},
 	["<M-g>g"] = {
 		prims.modes.navigation_modes,
-		uarg.format_count(prims.actions.ex_command("%d"), { default = prompts.prompt_count }),
+		uarg.format_count(prims.actions.ex_command.inject("%d"), { default = prompts.prompt_count }),
 		{ desc = "goto-line", expr = true },
 	},
 	-- idk what imenu is
@@ -950,38 +962,42 @@ M.global_bindings = {
 	-- find-file-read-only-other-tab unimplemented (seriously, who uses this)
 	["<C-x>t0"] = {
 		prims.modes.all_modes,
-		uarg.format_count(prims.actions.ex_command("tabc %d"), { default_cmd = prims.actions.ex_command("tabc") }),
+		uarg.format_count(
+			prims.actions.ex_command.inject("tabc %d"),
+			{ default_cmd = prims.actions.ex_command.inject("tabc") }
+		),
 		{ desc = "tab-close", expr = true },
 	},
 	["<C-x>t1"] = {
 		prims.modes.all_modes,
-		prims.actions.ex_command("tabonly"),
+		prims.actions.ex_command.inject("tabonly"),
 		{ desc = "tab-close-other" },
 	},
 	["<C-x>t2"] = {
 		prims.modes.all_modes,
-		prims.actions.ex_command("tabnew"),
+		prims.actions.ex_command.inject("tabnew"),
 		{ desc = "tab-new" },
 	},
 	-- tab groups unimplemented
 	["<C-x>tM"] = {
 		prims.modes.all_modes,
-		uarg.format_count(prims.actions.ex_command("tabmove %d")),
+		uarg.format_count(prims.actions.ex_command.inject("tabmove %d")),
 		{ desc = "tab-move-to", expr = true },
 	},
 	["<C-x>tN"] = {
 		prims.modes.all_modes,
-		uarg.format_count(prims.actions.ex_command("tabnew") .. prims.actions.ex_command("tabmove %d")),
+		uarg.format_count(prims.actions.ex_command.inject("tabnew") .. prims.actions.ex_command.inject("tabmove %d")),
 		{ desc = "tab-new-to", expr = true },
 	},
-	["<C-x>tO"] = prims.actions.normal.bindings({
+	["<C-x>tO"] = {
 		prims.modes.all_modes,
-		-- Done this way because it needs to be circular, which tabprev does not achieve
-		function(normal)
-			return uarg.format_count(normal("%dgT"), { opposite = normal("%dgt") })
-		end,
+		-- The argument of `tabnext` has weird semantics
+		uarg.repeat_times(
+			prims.actions.ex_command.inject("tabprevious"),
+			{ opposite = prims.actions.ex_command.inject("tabnext") }
+		),
 		{ desc = "tab-previous", expr = true },
-	}),
+	},
 	["<C-x>tb"] = prims.actions.interactive_ex_command.bindings({
 		prims.modes.all_modes,
 		function(iex)
@@ -997,15 +1013,15 @@ M.global_bindings = {
 		{ desc = "dired-other-tab", expr = true },
 	}),
 	-- tab-duplicate hard to implement (i think)
-	["<C-x>to"] = prims.actions.normal.bindings({
+	["<C-x>to"] = {
 		prims.modes.all_modes,
-		-- Done this way because it needs to be circular, which tabnext does not achieve
-		function(normal)
-			-- FIXME: currently affected by a bug
-			return uarg.format_count(normal("%dgt"), { opposite = normal("%dgT") })
-		end,
+		-- The argument of `tabnext` has weird semantics
+		uarg.repeat_times(
+			prims.actions.ex_command.inject("tabnext"),
+			{ opposite = prims.actions.ex_command.inject("tabprevious") }
+		),
 		{ desc = "tab-next", expr = true },
-	}),
+	},
 	-- tab-rename currently hard in nvim
 	-- not doing other-tab-prefix
 	-- tab-undo is also hard
@@ -1018,7 +1034,7 @@ M.global_bindings = {
 		uarg.pass_count(function(count)
 			count = count or 0
 			return string.format(
-				prims.actions.ex_command("go %d"),
+				prims.actions.ex_command.inject("go %d"),
 				math.max(util.clamp(count, 0, 10) / 10 * vim.fn.wordcount().bytes, 1)
 			)
 		end),
@@ -1064,7 +1080,7 @@ M.global_bindings = {
 	["<C-x>4d"] = prims.actions.normal.bindings({
 		prims.modes.navigation_modes,
 		function(normal)
-			return uarg.sequence(select_other_window(normal), prims.actions.ex_command("e ."))
+			return uarg.sequence(select_other_window(normal), prims.actions.ex_command.inject("e ."))
 		end,
 		{ desc = "run Dired in other window", expr = true },
 	}),
@@ -1134,12 +1150,12 @@ M.lisp_interaction_mode_bindings = {
 	["<C-c><C-e>"] = {
 		{
 			prims.modes.insert_mode,
-			prims.actions.ex_command("1,$lua"),
+			prims.actions.ex_command.inject("1,$lua"),
 			{ desc = "elisp-eval-region-or-buffer" },
 		},
 		{
 			prims.modes.visual_mode,
-			prims.actions.ex_command("lua"),
+			prims.actions.ex_command.inject("lua"),
 			{ desc = "elisp-eval-region-or-buffer" },
 		},
 	},
@@ -1158,8 +1174,24 @@ M.lisp_interaction_mode_bindings = {
 -- eshell-mode
 
 M.tab_bar_mode = {
-	["<C-S-Tab>"] = { prims.modes.all_modes, prims.actions.ex_command("tabprevious"), { desc = "tab-previous" } },
-	["<C-Tab>"] = { prims.modes.all_modes, prims.actions.ex_command("tabnext"), { desc = "tab-next" } },
+	["<C-S-Tab>"] = {
+		prims.modes.all_modes,
+		-- The argument of `tabnext` has weird semantics
+		uarg.repeat_times(
+			prims.actions.ex_command.inject("tabprevious"),
+			{ opposite = prims.actions.ex_command.inject("tabnext") }
+		),
+		{ desc = "tab-previous", expr = true },
+	},
+	["<C-Tab>"] = {
+		prims.modes.all_modes,
+		-- The argument of `tabnext` has weird semantics
+		uarg.repeat_times(
+			prims.actions.ex_command.inject("tabnext"),
+			{ opposite = prims.actions.ex_command.inject("tabprevious") }
+		),
+		{ desc = "tab-next", expr = true },
+	},
 }
 
 M.move_text = {

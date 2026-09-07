@@ -1,4 +1,7 @@
 local M = {}
+
+local util = require("eclectic.common.util")
+
 M.modes = {}
 M.actions = {}
 
@@ -51,8 +54,15 @@ function M.actions.visual.from_mode(mode)
 	end
 end
 
-function M.actions.ex_command(str)
+M.actions.ex_command = {}
+
+function M.actions.ex_command.inject(str)
 	return "<Cmd>" .. str .. "<CR>"
+end
+
+-- Mode is technically not required but we do it for consistency
+function M.actions.ex_command.from_mode(mode)
+	return M.actions.ex_command.inject
 end
 
 M.actions.interactive_ex_command = {}
